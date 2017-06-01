@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Functor Soup - Starting off with Korma</title>
+        <link rel="stylesheet" href="../css/default.css" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Functor-Soup</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../contact.html">Contact</a>
+                <a href="../archive.html">Archive</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Starting off with Korma</h1>
+            <div class="info">
+    Posted on August 26, 2016
+    
+</div>
+
+<p>The first time I tried Korma, I was annoyed to no end, pretty much gave up on doing any CRUD app in clojure. It always seems like doing anything database-DSL-related in a fancy JVM language like Scala, clojure or a non JVM language like common lisp seems mystical. Why does it seem mystical? because half of the time, it bloody doesn’t work and smashing your head is not good enough for the demi-gods of computing.</p>
+<p>So here I will try to demystify the concept of doing database stuff via clojure via a teeny-tiny example. I will be using <code>MySQL</code> because at this point, that is the database I am most comfortable working with.</p>
+<p>So the code is here, it’s tagged as <code>v0.1.0</code> because this app will be continuously worked upon <a href="https://github.com/functor-soup/clojure-crud/releases/tag/v0.1.0" class="uri">https://github.com/functor-soup/clojure-crud/releases/tag/v0.1.0</a></p>
+<p>First let’s create something databasey to begin with</p>
+<ol style="list-style-type: decimal">
+<li><p>load the following script into your mysql console which for me goes something like this:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">mysql</span> -u root -p <span class="op">&lt;</span> oggy.sql</code></pre></div>
+<p>Note: oggy.sql is the file that contains the following commands.</p></li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode sql"><code class="sourceCode sql"><span class="kw">create</span> <span class="kw">database</span> gintama;
+<span class="kw">use</span> gintama;
+<span class="kw">create</span> <span class="kw">table</span> polls (<span class="kw">id</span> <span class="dt">int</span> auto_increment, name <span class="dt">varchar</span>(<span class="dv">20</span>), <span class="fu">rank</span> <span class="dt">int</span>, <span class="kw">primary</span> <span class="kw">key</span> (<span class="kw">id</span>));
+<span class="kw">insert</span> <span class="kw">into</span> polls (name,<span class="fu">rank</span>) <span class="kw">values</span> (<span class="st">'gintoki'</span>,<span class="dv">1</span>), (<span class="st">'sougo'</span>,<span class="dv">2</span>),(<span class="st">'hijikata'</span>,<span class="dv">3</span>);
+<span class="kw">GRANT</span> <span class="kw">all</span> <span class="kw">privileges</span> <span class="kw">ON</span> gintama.* <span class="kw">TO</span> <span class="st">'katsura'</span>@<span class="st">'localhost'</span> <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="st">'elizebethe'</span>;</code></pre></div>
+<p>so what this is essentially doing is :</p>
+<ol style="list-style-type: decimal">
+<li>It creates the database <code>gintama</code></li>
+<li>Goes on create a table <code>polls</code> under the <code>gintama</code> database</li>
+<li>inserts values so as to populate the table</li>
+<li>creates a new user <code>katsura</code> with password: <code>elizebethe</code>and grants the user rights on the <code>gintama</code> database</li>
+</ol>
+<p>So if all went well you should be able to enter a mysql session via the following command following by entering <code>elizebethe</code> as the password</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">mysql</span> -u katsura -p</code></pre></div>
+<p>and check for the <code>gintama</code> table and view the contents of the table which should contain the populated values from the above script.</p>
+<h3 id="moving-on-to-the-clojure-side-of-things">Moving on to the clojure side of things</h3>
+<p>(The following you have lein installed on your computer)</p>
+<p>Enter the following command to create a new <code>lein</code> project in the directory of your choosing</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">lein</span> new clojure-crud</code></pre></div>
+<p>Though the app name is <code>clojure-crud</code>, I will only be focusing on the database side of things for now, not the <code>ring</code>,<code>compojure</code>, etc side of things.</p>
+<p>Now <code>cd</code> into clojure-crud and open up <code>project.clj</code> and modify the following <code>vector of vectors</code></p>
+<div class="sourceCode"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span class="at">:dependencies</span> [[org.clojure/clojure <span class="st">&quot;1.7.0&quot;</span>]])</code></pre></div>
+<p>into</p>
+<div class="sourceCode"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span class="at">:dependencies</span> [[org.clojure/clojure <span class="st">&quot;1.7.0&quot;</span>]
+               [korma <span class="st">&quot;0.4.3&quot;</span>]])</code></pre></div>
+<p>Note, this version of korma is taken of the master branch of the korma repo at <a href="https://github.com/korma/Korma" class="uri">https://github.com/korma/Korma</a>, so at the time of writing the above is the version number.</p>
+<p><strong>Now this is very important, you Mr./Miss Reader note this down that there yet another dependency (atleast) for Mysql that needs to be added, and this is the place I fucked up the most. The answer to the reason why I couldn’t get my previous plays with korma as the main actor to work lies in the project.clj of the korma project namely the line <code>[mysql/mysql-connector-java &quot;5.1.35&quot;]</code></strong></p>
+<p>So finally the dependency vector should be as follows</p>
+<div class="sourceCode"><pre class="sourceCode clojure"><code class="sourceCode clojure"><span class="at">:dependencies</span> [[org.clojure/clojure <span class="st">&quot;1.7.0&quot;</span>]
+                 [korma <span class="st">&quot;0.4.3&quot;</span>]
+                 [mysql/mysql-connector-java <span class="st">&quot;5.1.35&quot;</span>]])</code></pre></div>
+<p>save and exit the editor. Run the following <code>bash</code> command</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="ex">lein</span> deps</code></pre></div>
+<p>Now, open <code>src/clojure_crud/core.clj</code></p>
+<p>and edit the namespace and library import at the very top to be as follows</p>
+<div class="sourceCode"><pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">ns</span> clojure-crud.core
+  (<span class="at">:use</span> [korma.db]
+			  [korma.core]))</code></pre></div>
+<p>now the define the credentials to the <code>gintama</code> database as follows:</p>
+<div class="sourceCode"><pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="bu">def</span><span class="fu"> credentials </span>{<span class="at">:user</span> <span class="st">&quot;katsura&quot;</span> <span class="at">:db</span> <span class="st">&quot;gintama&quot;</span> <span class="at">:password</span> <span class="st">&quot;elizebethe&quot;</span>})</code></pre></div>
+<p>Now comes the part of using korma macros to make some actual headway</p>
+<p>We are going to use the following macros: <code>defdb</code>, <code>mysql</code> helper and <code>defentity</code></p>
+<div class="sourceCode"><pre class="sourceCode clojure"><code class="sourceCode clojure">
+(defdb gintama (mysql credentials))
+
+(defentity polls)</code></pre></div>
+<p>So this is what I understand the mentioned above <code>korma</code> macros do</p>
+<ol style="list-style-type: decimal">
+<li><code>defdb</code> defines the global database connection</li>
+<li><code>mysql</code> is just a helper function used to define defaults for the connection pertainent to mysql</li>
+<li><code>defentity</code> defines the table to be worked upon</li>
+</ol>
+<p>Sanity check to see if all of this is working is to add this to the next line of ```</p>
+<div class="sourceCode"><pre class="sourceCode clojure"><code class="sourceCode clojure">(<span class="kw">select</span> polls)</code></pre></div>
+<p>Save here. Gosh, this sure feels like a video-game walkthrough</p>
+<p>Now there are two way to run this</p>
+<p>Either have a REPL alongside that you can reload the code into (print out the results otherwise you won’t be able to see the results in the REPL console), or do this non-kosher way to see the results</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="fu">cat</span> src/clojure_crd/core.clj <span class="kw">|</span> <span class="ex">lein</span> repl</code></pre></div>
+<p>Hopefully you should see something like this (usually preceded by a large garble of text)</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="kw">(</span>{:<span class="ex">id</span> 1, :name <span class="st">&quot;gintoki&quot;</span>, :rank 1} {:<span class="ex">id</span> 2, :name <span class="st">&quot;sougo&quot;</span>, :rank 2} {:<span class="ex">id</span> 3, :name <span class="st">&quot;hijikata&quot;</span>, :rank 3}<span class="kw">)</span></code></pre></div>
+<p>That is it for the most part. But we will go on to to defining <code>create</code>,<code>update</code> and <code>delete</code> functions.</p>
+<h3 id="the-read-function">the read function</h3>
+<div class="sourceCode"><pre class="sourceCode clojure"><code class="sourceCode clojure">
+(<span class="bu">defn</span><span class="fu"> getAll </span>[]
+ (<span class="kw">select</span> polls))</code></pre></div>
+<p>pretty straightforward, just a fancy wrapper around the already established <code>select</code> function.</p>
+<h3 id="the-update-insert-function">the update insert function</h3>
+<div class="sourceCode"><pre class="sourceCode clojure"><code class="sourceCode clojure">
+(<span class="bu">defn</span><span class="fu"> insert</span>_ [{<span class="at">:keys</span> [<span class="kw">name</span>  rank]}]
+  (insert polls (values {<span class="at">:name</span> <span class="kw">name</span> <span class="at">:rank</span> rank})))</code></pre></div>
+<p>A little bit of destructuring magic and wrapping around korma’s insert function and boom magic …magic ..magic</p>
+<h3 id="the-update-function">the update function</h3>
+<p>So this is more of a upsert function. I feel uncomfortable with just an update. Maybe you feels the same too.</p>
+<p>So I first check if the <code>name</code> given as an argument exists within the table, if it does … blah blah blah .. if it doesn’t it creates a new row. <code>Upsert</code> baby <code>upsert</code>.</p>
+<div class="sourceCode"><pre class="sourceCode clojure"><code class="sourceCode clojure">
+(<span class="bu">defn</span><span class="fu"> update</span>_ [{<span class="at">:keys</span> [<span class="kw">name</span> rank]}]
+  (<span class="kw">if</span> (<span class="kw">empty?</span> (<span class="kw">select</span> polls (where {<span class="at">:name</span> [<span class="kw">=</span> <span class="kw">name</span>]})))
+    (insert_ {<span class="at">:name</span> <span class="kw">name</span> <span class="at">:rank</span> rank})
+    (update polls
+            (set-fields {<span class="at">:rank</span> rank})
+            (where {<span class="at">:name</span> [<span class="kw">=</span> <span class="kw">name</span>]}))))</code></pre></div>
+<p>hopefully you find it logical enough to not strangle your mental image of me.</p>
+<h3 id="the-delete-function">the delete function</h3>
+<p>now this is one function that made me read up on error handling and spewing out error messages. I doubt I took in anything from what I read, so here goes .. in essence it if it doesn’t find a name that matches one in the table it gives out a map with a key <code>error</code> and the string message as the value. What does that accomplish? meh .. seems better than throwing an exception, although loads of are exception-happy..</p>
+<div class="sourceCode"><pre class="sourceCode clojure"><code class="sourceCode clojure">
+(<span class="bu">defn</span><span class="fu"> delete</span>_ [<span class="kw">name</span>]
+  (<span class="kw">if</span> (<span class="kw">empty?</span> (<span class="kw">select</span> polls (where {<span class="at">:name</span> [<span class="kw">=</span> <span class="kw">name</span>]})))
+    {<span class="at">:error</span> <span class="st">&quot;Name does not exist in db&quot;</span>}
+    (delete polls
+            (where {<span class="at">:name</span> [<span class="kw">=</span> <span class="kw">name</span>]}))))</code></pre></div>
+<p>Hope all of that made some sense and hopefully you atleast got korma to work for you.</p>
+<p>Meet y’all next time.</p>
+<p>Maybe. Maybe not. Maybe fuck yourself.</p>
+
+        </div>
+
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+    </body>
+</html>
