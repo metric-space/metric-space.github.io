@@ -57,10 +57,15 @@ drawRectangle <span class="fu">=</span> <span class="kw">do</span>
 
 <span class="ot">main ::</span> <span class="dt">IO</span> ()
 main <span class="fu">=</span> <span class="kw">do</span>
- surface <span class="ot">&lt;-</span> createImageSurface <span class="dt">FormatRGB24</span> <span class="dv">400</span> <span class="dv">400</span>
+ surface <span class="ot">&lt;-</span> createImageSurface <span class="dt">FormatARGB32</span> <span class="dv">400</span> <span class="dv">400</span>
  renderWith surface drawRectangle   <span class="co">-- stamp source though mask to final destination</span>
  surfaceWriteToPNG surface outputFileName
 </code></pre></div>
+<p>And the output is as follows</p>
+<div class="figure">
+<img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/cairo1/output1.png" alt="cairo-output" />
+<p class="caption">cairo-output</p>
+</div>
 
         </div>
 
