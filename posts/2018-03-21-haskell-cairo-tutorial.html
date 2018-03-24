@@ -105,6 +105,63 @@ main <span class="fu">=</span> <span class="kw">do</span>
 <img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/cairo1-output2.png" alt="(cairo-output-2)" />
 <p class="caption">(cairo-output-2)</p>
 </div>
+<h3 id="bypassing-the-mask-layer">Bypassing the mask layer</h3>
+<p>There seems to be a way to completely transfer the source to the final destination without going through the mask mumbo-jumbo. Below is a port from the official tutorial code to Haskell which happens to be an example of bypassing the mask layer.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">
+<span class="kw">import </span><span class="dt">Graphics.Rendering.Cairo</span>
+
+
+<span class="ot">outputFileName ::</span> <span class="dt">String</span>
+outputFileName <span class="fu">=</span> <span class="st">&quot;output3.png&quot;</span>
+
+
+<span class="ot">transferSource ::</span> <span class="dt">Render</span> ()
+transferSource <span class="fu">=</span> <span class="kw">do</span>
+  setSourceRGB <span class="fl">0.0</span> <span class="fl">1.0</span> <span class="fl">0.8</span>    <span class="co">-- set the source layer to some color</span>
+  paintWithAlpha <span class="fl">0.5</span>          <span class="co">-- this copies the sources + added transparency, you could use just paint for no transparency addition</span>
+  
+
+<span class="ot">main ::</span> <span class="dt">IO</span> ()
+main <span class="fu">=</span> <span class="kw">do</span>
+ surface <span class="ot">&lt;-</span> createImageSurface <span class="dt">FormatARGB32</span> <span class="dv">400</span> <span class="dv">400</span> 
+ renderWith surface transferSource  
+ surfaceWriteToPNG surface outputFileName
+</code></pre></div>
+<p>and the output for the above is</p>
+<div class="figure">
+<img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/cairo1-output3.png" alt="(cairo-output-3)" />
+<p class="caption">(cairo-output-3)</p>
+</div>
+<p>Boring yeah? let’s try doing the exact same thing but to the Gintoki Picture</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">
+<span class="kw">import </span><span class="dt">Graphics.Rendering.Cairo</span>
+
+
+<span class="ot">outputFileName ::</span> <span class="dt">String</span>
+outputFileName <span class="fu">=</span> <span class="st">&quot;output4.png&quot;</span>
+
+
+<span class="ot">gintokiFileName ::</span> <span class="dt">String</span>
+gintokiFileName <span class="fu">=</span> <span class="st">&quot;gintoki.png&quot;</span>
+
+
+<span class="ot">transferSource ::</span> <span class="dt">Render</span> ()
+transferSource <span class="fu">=</span> <span class="kw">do</span>
+  setSourceRGB <span class="fl">0.0</span> <span class="fl">1.0</span> <span class="fl">0.8</span>    <span class="co">-- set the source layer to some color</span>
+  paintWithAlpha <span class="fl">0.5</span>          
+  
+
+<span class="ot">main ::</span> <span class="dt">IO</span> ()
+main <span class="fu">=</span> <span class="kw">do</span>
+ surface <span class="ot">&lt;-</span> imageSurfaceCreateFromPNG gintokiFileName
+ renderWith surface transferSource  
+ surfaceWriteToPNG surface outputFileName
+</code></pre></div>
+<p>The output:</p>
+<div class="figure">
+<img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/cairo1-output4.png" alt="(cairo-output-4)" />
+<p class="caption">(cairo-output-4)</p>
+</div>
 
         </div>
 
