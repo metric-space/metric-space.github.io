@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Metric Space - haskell-cairo-tutorial-0</title>
+        <link rel="stylesheet" href="../css/default.css" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Metric-Space</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../contact.html">Contact</a>
+                <a href="../archive.html">Archive</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>haskell-cairo-tutorial-0</h1>
+            <div class="info">
+    Posted on March 21, 2018
+    
+</div>
+
+<p>I’ve started off going through Benjamin Kovac’s <a href="https://www.kovach.me/posts/2018-03-07-generating-art.html">Generating artwork with Haskell</a> and ended up with trying to master the Cairo API.</p>
+<p>One of the things I like the most about Haskell (among so many other things) and it’s related libraries is any project ends up as a game no different than playing with Lego. Everything you do ends up as an activity of making sure the different pieces fit each other. And of course Haskell is always a blessing to work with.</p>
+<p>Now into the thick of it. What I plan to do is to give a brief intro to the idea behind cairo but won’t expand beyond what is already given in the <a href="https://cairographics.org/tutorial/">official tutorial</a> and follow that up with some direct code port from the mentioned official tutorial link to Haskell and throw in my mix of things.</p>
+<h2 id="warning">Warning:</h2>
+<p>I’m just an idiot goofing about with Cairo and Haskell and this write-up is just me writing down my results of experiments with Cairo and Haskell. This is definitely not a Pro-written tutorial</p>
+<h3 id="cairo-basic-rundown">Cairo: Basic Rundown</h3>
+<p>Cairo operates on three layers i.e</p>
+<ol style="list-style-type: decimal">
+<li>The final destination (the layer that will contain the final result)</li>
+<li>The Mask (or the blueprint)</li>
+<li>The Source (the ink that get’s pressed through the mask)</li>
+</ol>
+<p>Note: I have yet to understand what sort of advantage this sort of abstraction gives anyone. As of now it’s just a novel idea to me, though other than that it has nothing going for itself. This may change in the future.</p>
+<h3 id="first-steps-with-haskell-and-cairo">First steps with Haskell and Cairo</h3>
+<p>Let’s attempt to do draw a rectangle on a white surface, the code is pretty straightforward (imo of course), here it is in all it’s glory and hopefully the comments direct it (Hopefully you have stack set up, a new project with cairo as a dependency and keep <a href="https://hackage.haskell.org/package/cairo-0.13.4.2/docs/Graphics-Rendering-Cairo.html">this hackage link</a> open in a tab for reference, API docs help alot pals and gals)</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">
+<span class="ot">outputFileName ::</span> <span class="dt">String</span>
+outputFileName <span class="fu">=</span> <span class="st">&quot;output1.png&quot;</span>
+
+
+<span class="ot">drawRectangle ::</span> <span class="dt">Render</span> ()
+drawRectangle <span class="fu">=</span> <span class="kw">do</span>
+  setSourceRGB <span class="fl">0.0</span> <span class="fl">0.0</span> <span class="fl">0.0</span>    <span class="co">-- set the source layer to black color</span>
+  setLineWidth <span class="dv">5</span>              <span class="co">-- set virtual pen width</span>
+  rectangle <span class="dv">10</span> <span class="dv">10</span> <span class="dv">100</span> <span class="dv">200</span>     <span class="co">-- draw a rectangle at (10,10)</span>
+  stroke                      <span class="co">-- transfer to mask</span>
+  
+
+<span class="ot">main ::</span> <span class="dt">IO</span> ()
+main <span class="fu">=</span> <span class="kw">do</span>
+ surface <span class="ot">&lt;-</span> createImageSurface <span class="dt">FormatRGB24</span> <span class="dv">400</span> <span class="dv">400</span>
+ renderWith surface drawRectangle   <span class="co">-- stamp source though mask to final destination</span>
+ surfaceWriteToPNG surface outputFileName
+</code></pre></div>
+
+        </div>
+
+        <div id="footer">
+            <a href="https://www.brainyquote.com/authors/alfred_north_whitehead">Quotes by an okay chap</a>
+        </div>
+    </body>
+</html>
