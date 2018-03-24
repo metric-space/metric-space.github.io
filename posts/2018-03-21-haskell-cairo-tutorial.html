@@ -162,6 +162,49 @@ main <span class="fu">=</span> <span class="kw">do</span>
 <img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/cairo1-output4.png" alt="(cairo-output-4)" />
 <p class="caption">(cairo-output-4)</p>
 </div>
+<p>Now let’s try something even more interesting! Let’s fuse two images!!!!! So now all this time we’ve been using a solid color as a source. Let’s switch to using a picture and do the exact same bypassing the mask + added transparency with a picture to a picture. It’s a cairo miracle (heehee jokes.. albeit of the non-funny kind)</p>
+<p>The second image is a second picture of Gintoki (and the destination surface still remains the first picture of Gintoki)</p>
+<div class="figure">
+<img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/gintoki2.png" alt="(gintoki-picture)" />
+<p class="caption">(gintoki-picture)</p>
+</div>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">
+<span class="kw">import </span><span class="dt">Graphics.Rendering.Cairo</span>
+
+
+<span class="ot">outputFileName ::</span> <span class="dt">String</span>
+outputFileName <span class="fu">=</span> <span class="st">&quot;output4.png&quot;</span>
+
+
+<span class="ot">gintokiFileName ::</span> <span class="dt">String</span>
+gintokiFileName <span class="fu">=</span> <span class="st">&quot;gintoki.png&quot;</span>
+
+
+<span class="ot">gintoki2FileName ::</span> <span class="dt">String</span>
+gintoki2FileName <span class="fu">=</span> <span class="st">&quot;gintoki.png&quot;</span>
+
+
+<span class="ot">transferImage ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Render</span> ()  
+transferImage fileName <span class="fu">=</span> <span class="kw">do</span>
+  surface <span class="ot">&lt;-</span> liftIO <span class="fu">.</span> imageSurfaceCreateFromPNG <span class="fu">$</span> fileName
+  setSourceSurface surface <span class="dv">0</span> <span class="dv">0</span>   <span class="co">-- set a source to a surface rather than a colour</span>
+  paintWithAlpha <span class="fl">0.5</span>
+
+
+<span class="ot">main ::</span> <span class="dt">IO</span> ()
+main <span class="fu">=</span> <span class="kw">do</span>
+ surface <span class="ot">&lt;-</span> imageSurfaceCreateFromPNG gintokiFileName
+ renderWith surface (transferImage gintoki2FileName)
+ surfaceWriteToPNG surface outputFileName
+</code></pre></div>
+<p>and the output is</p>
+<div class="figure">
+<img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/cairo1-output5.png" alt="(cairo-output-5)" />
+<p class="caption">(cairo-output-5)</p>
+</div>
+<p>I believe the confusion that could possibly arise from the last example is the random use of <code>liftIO</code>, that just there to give a sense for more complicated things to come</p>
+<p><code>Render</code> is a monad and is a memeber of typeclass <code>MonadIO</code> and implements the <code>liftIO</code> function which has a type signature <code>liftIO :: IO a -&gt; Render a</code></p>
+<p>That’s all for now folks, tune in next time for gradients stuff and hopefully much more than that</p>
 
         </div>
 
