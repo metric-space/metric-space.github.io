@@ -43,6 +43,9 @@
 <h3 id="first-steps-with-haskell-and-cairo">First steps with Haskell and Cairo</h3>
 <p>Let’s attempt to do draw a rectangle on a white surface, the code is pretty straightforward (imo of course), here it is in all it’s glory and hopefully the comments direct it (Hopefully you have stack set up, a new project with cairo as a dependency and keep <a href="https://hackage.haskell.org/package/cairo-0.13.4.2/docs/Graphics-Rendering-Cairo.html">this hackage link</a> open in a tab for reference, API docs help alot pals and gals)</p>
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">
+<span class="kw">import </span><span class="dt">Graphics.Rendering.Cairo</span>
+
+
 <span class="ot">outputFileName ::</span> <span class="dt">String</span>
 outputFileName <span class="fu">=</span> <span class="st">&quot;output1.png&quot;</span>
 
@@ -63,8 +66,44 @@ main <span class="fu">=</span> <span class="kw">do</span>
 </code></pre></div>
 <p>And the output is as follows</p>
 <div class="figure">
-<img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/cairo1-output1.png" alt="cairo-output" />
-<p class="caption">cairo-output</p>
+<img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/cairo1-output1.png" alt="(cairo-output)" />
+<p class="caption">(cairo-output)</p>
+</div>
+<p>Now just for fun let’s take the following image and add a red rectangle somewhere on it</p>
+<div class="figure">
+<img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/gintoki.png" alt="(gintoki-picture)" />
+<p class="caption">(gintoki-picture)</p>
+</div>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">
+<span class="kw">import </span><span class="dt">Graphics.Rendering.Cairo</span>
+
+
+<span class="ot">outputFileName ::</span> <span class="dt">String</span>
+outputFileName <span class="fu">=</span> <span class="st">&quot;output2.png&quot;</span>
+
+
+<span class="ot">gintokiFileName ::</span> <span class="dt">String</span>
+gintokiFileName <span class="fu">=</span> <span class="st">&quot;gintoki.png&quot;</span>
+
+
+<span class="ot">drawRectangle ::</span> <span class="dt">Render</span> ()
+drawRectangle <span class="fu">=</span> <span class="kw">do</span>
+  setSourceRGB <span class="fl">1.0</span> <span class="fl">0.0</span> <span class="fl">0.0</span>    <span class="co">-- set the source layer to red color</span>
+  setLineWidth <span class="dv">10</span>             <span class="co">-- set virtual pen width</span>
+  rectangle <span class="dv">50</span> <span class="dv">50</span> <span class="dv">100</span> <span class="dv">100</span>     <span class="co">-- draw a rectangle at (50,50)</span>
+  stroke                      <span class="co">-- transfer to mask</span>
+  
+
+<span class="ot">main ::</span> <span class="dt">IO</span> ()
+main <span class="fu">=</span> <span class="kw">do</span>
+ surface <span class="ot">&lt;-</span> imageSurfaceCreateFromPNG gintokiFileName  <span class="co">-- this  line is the major difference from the previous code</span>
+ renderWith surface drawRectangle   <span class="co">-- stamp source though mask to final destination</span>
+ surfaceWriteToPNG surface outputFileName
+</code></pre></div>
+<p>And the output is here</p>
+<div class="figure">
+<img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/cairo1-output2.png" alt="(cairo-output-2)" />
+<p class="caption">(cairo-output-2)</p>
 </div>
 
         </div>
