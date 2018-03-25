@@ -30,8 +30,9 @@
 <p>I’ve started off going through Benjamin Kovac’s <a href="https://www.kovach.me/posts/2018-03-07-generating-art.html">Generating artwork with Haskell</a> and ended up with trying to master the Cairo API.</p>
 <p>One of the things I like the most about Haskell (among so many other things) and it’s related libraries is any project ends up as a game no different than playing with Lego. Everything you do ends up as an activity of making sure the different pieces fit each other. And of course Haskell is always a blessing to work with.</p>
 <p>Now into the thick of it. What I plan to do is to give a brief intro to the idea behind cairo but won’t expand beyond what is already given in the <a href="https://cairographics.org/tutorial/">official tutorial</a> and follow that up with some direct code port from the mentioned official tutorial link to Haskell and throw in my mix of things.</p>
-<h2 id="warning">Warning:</h2>
+<h2 id="warning-and-gintama-disclaimer">Warning and Gintama Disclaimer:</h2>
 <p>I’m just an idiot goofing about with Cairo and Haskell and this write-up is just me writing down my results of experiments with Cairo and Haskell. This is definitely not a Pro-written tutorial</p>
+<p>I am not the creator of the Gintoki images used in this tutorial, nor the creator of Gintoki nor Gintama. I have used these images just to showcase image transformations with the same.</p>
 <h3 id="cairo-basic-rundown">Cairo: Basic Rundown</h3>
 <p>Cairo operates on three layers i.e</p>
 <ol style="list-style-type: decimal">
@@ -203,7 +204,7 @@ main <span class="fu">=</span> <span class="kw">do</span>
 <p class="caption">(cairo-output-5)</p>
 </div>
 <p>I believe the confusion that could possibly arise from the last example is the random use of <code>liftIO</code>, that just there to give a sense for more complicated things to come</p>
-<p><code>Render</code> is a monad and is a memeber of typeclass <code>MonadIO</code> and implements the <code>liftIO</code> function which has a type signature <code>liftIO :: IO a -&gt; Render a</code></p>
+<p><code>Render</code> is a monad and is a member of typeclass <code>MonadIO</code> and implements the <code>liftIO</code> function which has a type signature <code>liftIO :: IO a -&gt; Render a</code>.</p>
 <p>That’s all for now folks, tune in next time for gradients stuff and hopefully much more than that</p>
 
         </div>
