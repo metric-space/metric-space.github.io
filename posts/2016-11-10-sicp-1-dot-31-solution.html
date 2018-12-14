@@ -6,6 +6,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Metric Space - sicp-1.31-solution</title>
         <link rel="stylesheet" href="../css/default.css" />
+        <link rel="stylesheet" href="../js/highlight/styles/nord.css">
+        <script src="../js/highlight/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
     </head>
     <body>
         <div id="header">
@@ -13,10 +16,7 @@
                 <a href="../">Metric-Space</a>
             </div>
             <div id="navigation">
-                <a href="../">Home</a>
-                <a href="../about.html">About</a>
-                <a href="../contact.html">Contact</a>
-                <a href="../archive.html">Archive</a>
+                <a href="../index.html">Back</a>
             </div>
         </div>
 
@@ -27,7 +27,7 @@
     
 </div>
 
-<p>So I’m trying to make way through <code>Structure and Interpretation of Computer Programs</code>, and it’s going pretty slow but it is definitely amusing and smashing !!! absolutely smashing. Don’t be shy to grab a copy if you can afford to (I mean a physical copy)</p>
+<p>So I’m trying to make way through <b>Structure and Interpretation of Computer Programs</b>, and it’s going pretty slow but it is definitely amusing and smashing !!! absolutely smashing. Don’t be shy to grab a copy if you can afford to (I mean a physical copy)</p>
 <p>So I came with a solution to the following problem that I am a bit proud of and hence I am writing on here about it.</p>
 <p>So here’s the question (It’ a part of question 1.31 of sicp, won’t be covering the whole question)</p>
 <pre><code>... Also use product to compute approximations to pi using the formula
@@ -35,20 +35,30 @@
 (pi/4) = (2.4.4.6.6.8 ...)/(3.3.5.5.7.7 ...)
 </code></pre>
 <p>So here’s a little info n what this <code>product</code> function is. All it is is a specific form of <code>fold</code>/<code>reduce</code></p>
-<div class="sourceCode"><pre class="sourceCode scheme"><code class="sourceCode scheme">
-(<span class="kw">define</span><span class="fu"> </span>(product a b next term)
-  (<span class="kw">if</span> (<span class="kw">&gt;</span> a b)
-     <span class="dv">1</span>
-     (* (term a) (product (next a) b next term))))</code></pre></div>
-<p>Given a range and a function to generate the next item in the sequence (<code>next</code>) alongside yet another function (<code>term</code>) that is a function that operates on each term, you get the product of the resultant terms after mapping the <code>term</code> function over the range.</p>
-<p>The resemblance to <code>fold</code> reduce may seem a little hazy because you cannot see the accumulator clearly so let’s go on a more <code>tail-recursive</code> or <code>iterative-process</code> form of the function</p>
-<div class="sourceCode"><pre class="sourceCode scheme"><code class="sourceCode scheme">
-(<span class="kw">define</span><span class="fu"> </span>(product a b next term)
- (<span class="kw">define</span><span class="fu"> </span>(iter a accumulator)
-   (<span class="kw">if</span> (<span class="kw">&gt;</span> a b)
+
+<pre><code class="scheme">
+(define (product a b next term)
+  (if (> a b)
+     1
+     (* (term a) (product (next a) b next term))))
+
+</code></pre>
+
+<p>Given a range and a function to generate the next item in the sequence (next) alongside yet another function (term) that is a function that operates on each term, 
+you get the product of the resultant terms after mapping the term function over the range.</p>
+
+<p>The resemblance to fold reduce may seem a little hazy because you cannot see the accumulator clearly so let’s go on a more tail-recursive or iterative-process form of the function</p>
+
+<pre><code class="scheme">
+(define (product a b next term)
+ (define (iter a accumulator)
+   (if (> a b)
      accumulator
      (iter (next a) (* (term a) accumulator))))
-  (iter a <span class="dv">1</span>))</code></pre></div>
+  (iter a 1))
+
+</code></pre>
+
 <p>And there you go !!!! you ought to see it by now right?</p>
 <p>So now moving on the more exciting part i.e calculation of pi via the above function</p>
 <p>After a while of coming up with not so elegant solutions I came up with this solution</p>
@@ -70,20 +80,26 @@ where d is the difference between each consecutive term</code></pre>
 <p>So now all we need to so is use the product function to generate a stream that produces even numbers as it is, and odd number as their multiplicative inverse</p>
 <p>AND WE NEED TO DO IT TWICE !!!! one for each separation (by <code>separation</code>, I mean the huge stuff with the parenthesis on each side of the multiplicative sign on the right hand side of the equation)</p>
 <p>So now we have</p>
-<div class="sourceCode"><pre class="sourceCode scheme"><code class="sourceCode scheme">(<span class="kw">define</span><span class="fu"> </span>(pi n)
- (<span class="kw">define</span><span class="fu"> </span>(inv a)
-   (<span class="kw">if</span> (<span class="kw">even?</span> a)
+
+<pre><code class="scheme">
+(define (pi n)
+ (define (inv a)
+   (if (even? a)
      a
-     (<span class="kw">/</span> <span class="dv">1</span> a)))
- (* <span class="dv">4</span> (* (product <span class="dv">2</span> (<span class="kw">+</span> <span class="dv">2</span> (<span class="kw">-</span> n <span class="dv">1</span>)) inc inv)
-         (product <span class="dv">3</span> (<span class="kw">+</span> <span class="dv">3</span> (<span class="kw">-</span> n <span class="dv">1</span>)) inc inv))))</code></pre></div>
+     (/ 1 a)))
+ (* 4 (* (product 2 (+ 2 (- n 1)) inc inv)
+         (product 3 (+ 3 (- n 1)) inc inv))))
+
+</code></pre>
+
+    
 <p>And if you are wondering where did the <code>4</code> come from? it’s from the left side of the <code>pi</code> equation.</p>
 <p>And there you go, nice and sweet.</p>
 
         </div>
 
         <div id="footer">
-            <a href="https://www.brainyquote.com/authors/alfred_north_whitehead">Quotes by an okay chap</a>
+            <a href="https://www.brainyquote.com/authors/alfred_north_whitehead" target="_blank">Quotes by an okay chap</a>
         </div>
     </body>
 </html>

@@ -6,6 +6,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Metric Space - haskell-cairo-tutorial-0</title>
         <link rel="stylesheet" href="../css/default.css" />
+        <link rel="stylesheet" href="../js/highlight/styles/nord.css">
+        <script src="../js/highlight/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
     </head>
     <body>
         <div id="header">
@@ -13,19 +16,14 @@
                 <a href="../">Metric-Space</a>
             </div>
             <div id="navigation">
-                <a href="../">Home</a>
-                <a href="../about.html">About</a>
-                <a href="../contact.html">Contact</a>
-                <a href="../archive.html">Archive</a>
+                <a href="../index.html">Back</a>
             </div>
         </div>
 
-        <div id="content">
-            <h1>haskell-cairo-tutorial-0</h1>
-            <div class="info">
-    Posted on March 21, 2018
-    
-</div>
+        <div id="content"> 
+            <h1>haskell-cairo-tutorial-0</h1> 
+            <div class="info"> Posted on March 21, 2018 
+            </div>
 
 <p>I’ve started off going through Benjamin Kovac’s <a href="https://www.kovach.me/posts/2018-03-07-generating-art.html">Generating artwork with Haskell</a> and ended up with trying to master the Cairo API.</p>
 <p>One of the things I like the most about Haskell (among so many other things) and it’s related libraries is any project ends up as a game no different than playing with Lego. Everything you do ends up as an activity of making sure the different pieces fit each other. And of course Haskell is always a blessing to work with.</p>
@@ -33,38 +31,43 @@
 <h2 id="warning-and-gintama-disclaimer">Warning and Gintama Disclaimer:</h2>
 <p>I’m just an idiot goofing about with Cairo and Haskell and this write-up is just me writing down my results of experiments with Cairo and Haskell. This is definitely not a Pro-written tutorial</p>
 <p>I am not the creator of the Gintoki images used in this tutorial, nor the creator of Gintoki nor Gintama. I have used these images just to showcase image transformations with the same.</p>
+
+
 <h3 id="cairo-basic-rundown">Cairo: Basic Rundown</h3>
 <p>Cairo operates on three layers i.e</p>
-<ol style="list-style-type: decimal">
-<li>The final destination (the layer that will contain the final result)</li>
-<li>The Mask (or the blueprint)</li>
-<li>The Source (the ink that get’s pressed through the mask)</li>
+<ol style="list-style-type: decimal"> 
+    <li>The final destination (the layer that will contain the final result)</li> 
+    <li>The Mask (or the blueprint)</li> 
+    <li>The Source (the ink that get’s pressed through the mask)</li> 
 </ol>
+
 <p>Note: I have yet to understand what sort of advantage this sort of abstraction gives anyone. As of now it’s just a novel idea to me, though other than that it has nothing going for itself. This may change in the future.</p>
+
 <h3 id="first-steps-with-haskell-and-cairo">First steps with Haskell and Cairo</h3>
 <p>Let’s attempt to do draw a rectangle on a white surface, the code is pretty straightforward (imo of course), here it is in all it’s glory and hopefully the comments direct it (Hopefully you have stack set up, a new project with cairo as a dependency and keep <a href="https://hackage.haskell.org/package/cairo-0.13.4.2/docs/Graphics-Rendering-Cairo.html">this hackage link</a> open in a tab for reference, API docs help alot pals and gals)</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">
-<span class="kw">import </span><span class="dt">Graphics.Rendering.Cairo</span>
+<pre><code class="hs">
+import Graphics.Rendering.Cairo
 
 
-<span class="ot">outputFileName ::</span> <span class="dt">String</span>
-outputFileName <span class="fu">=</span> <span class="st">&quot;output1.png&quot;</span>
+outputFileName :: String
+outputFileName = "output1.png"
 
 
-<span class="ot">drawRectangle ::</span> <span class="dt">Render</span> ()
-drawRectangle <span class="fu">=</span> <span class="kw">do</span>
-  setSourceRGB <span class="fl">0.0</span> <span class="fl">0.0</span> <span class="fl">0.0</span>    <span class="co">-- set the source layer to black color</span>
-  setLineWidth <span class="dv">5</span>              <span class="co">-- set virtual pen width</span>
-  rectangle <span class="dv">10</span> <span class="dv">10</span> <span class="dv">100</span> <span class="dv">200</span>     <span class="co">-- draw a rectangle at (10,10)</span>
-  stroke                      <span class="co">-- transfer to mask</span>
+drawRectangle :: Render ()
+drawRectangle = do
+                  setSourceRGB 0.0 0.0 0.0    -- set the source layer to black color
+                  setLineWidth 5              -- set virtual pen width
+                  rectangle 10 10 100 200     -- draw a rectangle at (10,10)
+                  stroke                      -- transfer to mask
   
 
-<span class="ot">main ::</span> <span class="dt">IO</span> ()
-main <span class="fu">=</span> <span class="kw">do</span>
- surface <span class="ot">&lt;-</span> createImageSurface <span class="dt">FormatARGB32</span> <span class="dv">400</span> <span class="dv">400</span>
- renderWith surface drawRectangle   <span class="co">-- stamp source though mask to final destination</span>
- surfaceWriteToPNG surface outputFileName
-</code></pre></div>
+main :: IO ()
+main = do
+         surface <- createImageSurface FormatARGB32 400 400
+         renderWith surface drawRectangle   -- stamp source though mask to final destination
+         surfaceWriteToPNG surface outputFileName
+
+</code></pre>
 <p>And the output is as follows</p>
 <div class="figure">
 <img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/cairo1-output1.png" alt="(cairo-output)" />
@@ -75,32 +78,33 @@ main <span class="fu">=</span> <span class="kw">do</span>
 <img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/gintoki.png" alt="(gintoki-picture)" />
 <p class="caption">(gintoki-picture)</p>
 </div>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">
-<span class="kw">import </span><span class="dt">Graphics.Rendering.Cairo</span>
+<pre><code class="haskell">
+import Graphics.Rendering.Cairo
 
 
-<span class="ot">outputFileName ::</span> <span class="dt">String</span>
-outputFileName <span class="fu">=</span> <span class="st">&quot;output2.png&quot;</span>
+outputFileName :: String
+outputFileName = "output2.png"
 
 
-<span class="ot">gintokiFileName ::</span> <span class="dt">String</span>
-gintokiFileName <span class="fu">=</span> <span class="st">&quot;gintoki.png&quot;</span>
+gintokiFileName :: String
+gintokiFileName = "gintoki.png"
 
 
-<span class="ot">drawRectangle ::</span> <span class="dt">Render</span> ()
-drawRectangle <span class="fu">=</span> <span class="kw">do</span>
-  setSourceRGB <span class="fl">1.0</span> <span class="fl">0.0</span> <span class="fl">0.0</span>    <span class="co">-- set the source layer to red color</span>
-  setLineWidth <span class="dv">10</span>             <span class="co">-- set virtual pen width</span>
-  rectangle <span class="dv">50</span> <span class="dv">50</span> <span class="dv">100</span> <span class="dv">100</span>     <span class="co">-- draw a rectangle at (50,50)</span>
-  stroke                      <span class="co">-- transfer to mask</span>
+drawRectangle :: Render ()
+drawRectangle = do
+                  setSourceRGB 1.0 0.0 0.0    -- set the source layer to red color
+                  setLineWidth 10             -- set virtual pen width
+                  rectangle 50 50 100 100     -- draw a rectangle at (50,50)
+                  stroke                      -- transfer to mask
   
 
-<span class="ot">main ::</span> <span class="dt">IO</span> ()
-main <span class="fu">=</span> <span class="kw">do</span>
- surface <span class="ot">&lt;-</span> imageSurfaceCreateFromPNG gintokiFileName  <span class="co">-- this  line is the major difference from the previous code</span>
- renderWith surface drawRectangle   <span class="co">-- stamp source though mask to final destination</span>
- surfaceWriteToPNG surface outputFileName
-</code></pre></div>
+main :: IO ()
+main = do
+         surface <- imageSurfaceCreateFromPNG gintokiFileName  -- this  line is the major difference from the previous code
+         renderWith surface drawRectangle                      -- stamp source though mask to final destination
+         surfaceWriteToPNG surface outputFileName
+
+</code></pre>
 <p>And the output is here</p>
 <div class="figure">
 <img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/cairo1-output2.png" alt="(cairo-output-2)" />
@@ -108,56 +112,64 @@ main <span class="fu">=</span> <span class="kw">do</span>
 </div>
 <h3 id="bypassing-the-mask-layer">Bypassing the mask layer</h3>
 <p>There seems to be a way to completely transfer the source to the final destination without going through the mask mumbo-jumbo. Below is a port from the official tutorial code to Haskell which happens to be an example of bypassing the mask layer.</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">
-<span class="kw">import </span><span class="dt">Graphics.Rendering.Cairo</span>
+
+<pre><code class="haskell">
+
+import Graphics.Rendering.Cairo
 
 
-<span class="ot">outputFileName ::</span> <span class="dt">String</span>
-outputFileName <span class="fu">=</span> <span class="st">&quot;output3.png&quot;</span>
+outputFileName :: String
+outputFileName = "output4.png"
 
 
-<span class="ot">transferSource ::</span> <span class="dt">Render</span> ()
-transferSource <span class="fu">=</span> <span class="kw">do</span>
-  setSourceRGB <span class="fl">0.0</span> <span class="fl">1.0</span> <span class="fl">0.8</span>    <span class="co">-- set the source layer to some color</span>
-  paintWithAlpha <span class="fl">0.5</span>          <span class="co">-- this copies the sources + added transparency, you could use just paint for no transparency addition</span>
+gintokiFileName :: String
+gintokiFileName = "gintoki.png"
+
+
+transferSource :: Render ()
+transferSource = do
+                   setSourceRGB 0.0 1.0 0.8    -- set the source layer to some color
+                   paintWithAlpha 0.5          
   
 
-<span class="ot">main ::</span> <span class="dt">IO</span> ()
-main <span class="fu">=</span> <span class="kw">do</span>
- surface <span class="ot">&lt;-</span> createImageSurface <span class="dt">FormatARGB32</span> <span class="dv">400</span> <span class="dv">400</span> 
+main :: IO ()
+main = do
+ surface <- imageSurfaceCreateFromPNG gintokiFileName
  renderWith surface transferSource  
  surfaceWriteToPNG surface outputFileName
-</code></pre></div>
+</code></pre>
 <p>and the output for the above is</p>
 <div class="figure">
 <img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/cairo1-output3.png" alt="(cairo-output-3)" />
 <p class="caption">(cairo-output-3)</p>
 </div>
 <p>Boring yeah? let’s try doing the exact same thing but to the Gintoki Picture</p>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">
-<span class="kw">import </span><span class="dt">Graphics.Rendering.Cairo</span>
+
+<pre><code class="haskell">
+
+import Graphics.Rendering.Cairo
 
 
-<span class="ot">outputFileName ::</span> <span class="dt">String</span>
-outputFileName <span class="fu">=</span> <span class="st">&quot;output4.png&quot;</span>
+outputFileName :: String
+outputFileName = "output4.png"
 
 
-<span class="ot">gintokiFileName ::</span> <span class="dt">String</span>
-gintokiFileName <span class="fu">=</span> <span class="st">&quot;gintoki.png&quot;</span>
+gintokiFileName :: String
+gintokiFileName = "gintoki.png"
 
 
-<span class="ot">transferSource ::</span> <span class="dt">Render</span> ()
-transferSource <span class="fu">=</span> <span class="kw">do</span>
-  setSourceRGB <span class="fl">0.0</span> <span class="fl">1.0</span> <span class="fl">0.8</span>    <span class="co">-- set the source layer to some color</span>
-  paintWithAlpha <span class="fl">0.5</span>          
+transferSource :: Render ()
+transferSource = do
+                   setSourceRGB 0.0 1.0 0.8    -- set the source layer to some color
+                   paintWithAlpha 0.5          
   
 
-<span class="ot">main ::</span> <span class="dt">IO</span> ()
-main <span class="fu">=</span> <span class="kw">do</span>
- surface <span class="ot">&lt;-</span> imageSurfaceCreateFromPNG gintokiFileName
- renderWith surface transferSource  
- surfaceWriteToPNG surface outputFileName
-</code></pre></div>
+main :: IO ()
+main = do
+         surface <- imageSurfaceCreateFromPNG gintokiFileName
+         renderWith surface transferSource  
+         surfaceWriteToPNG surface outputFileName
+</code></pre>
 <p>The output:</p>
 <div class="figure">
 <img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/cairo1-output4.png" alt="(cairo-output-4)" />
@@ -169,35 +181,40 @@ main <span class="fu">=</span> <span class="kw">do</span>
 <img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/gintoki2.png" alt="(gintoki-picture)" />
 <p class="caption">(gintoki-picture)</p>
 </div>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">
-<span class="kw">import </span><span class="dt">Graphics.Rendering.Cairo</span>
+
+<pre><code class="haskell"> 
+
+import Graphics.Rendering.Cairo
 
 
-<span class="ot">outputFileName ::</span> <span class="dt">String</span>
-outputFileName <span class="fu">=</span> <span class="st">&quot;output4.png&quot;</span>
+outputFileName :: String
+outputFileName = "output4.png"
 
 
-<span class="ot">gintokiFileName ::</span> <span class="dt">String</span>
-gintokiFileName <span class="fu">=</span> <span class="st">&quot;gintoki.png&quot;</span>
+gintokiFileName :: String
+gintokiFileName = "gintoki.png"
 
 
-<span class="ot">gintoki2FileName ::</span> <span class="dt">String</span>
-gintoki2FileName <span class="fu">=</span> <span class="st">&quot;gintoki.png&quot;</span>
+gintoki2FileName :: String
+gintoki2FileName = "gintoki.png"
 
 
-<span class="ot">transferImage ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Render</span> ()  
-transferImage fileName <span class="fu">=</span> <span class="kw">do</span>
-  surface <span class="ot">&lt;-</span> liftIO <span class="fu">.</span> imageSurfaceCreateFromPNG <span class="fu">$</span> fileName
-  setSourceSurface surface <span class="dv">0</span> <span class="dv">0</span>   <span class="co">-- set a source to a surface rather than a colour</span>
-  paintWithAlpha <span class="fl">0.5</span>
+transferImage :: String -> Render ()  
+transferImage fileName = do
+                           surface <- liftIO . imageSurfaceCreateFromPNG $ fileName
+                           setSourceSurface surface 0 0   -- set a source to a surface rather than a colour
+                           paintWithAlpha 0.5
 
 
-<span class="ot">main ::</span> <span class="dt">IO</span> ()
-main <span class="fu">=</span> <span class="kw">do</span>
- surface <span class="ot">&lt;-</span> imageSurfaceCreateFromPNG gintokiFileName
- renderWith surface (transferImage gintoki2FileName)
- surfaceWriteToPNG surface outputFileName
-</code></pre></div>
+main :: IO ()
+main = do
+         surface <- imageSurfaceCreateFromPNG gintokiFileName
+         renderWith surface (transferImage gintoki2FileName)
+         surfaceWriteToPNG surface outputFileName 
+    
+</code></pre>
+
+
 <p>and the output is</p>
 <div class="figure">
 <img src="https://raw.githubusercontent.com/metric-space/metric-space.github.io/master/images/cairo1-output5.png" alt="(cairo-output-5)" />
@@ -210,7 +227,7 @@ main <span class="fu">=</span> <span class="kw">do</span>
         </div>
 
         <div id="footer">
-            <a href="https://www.brainyquote.com/authors/alfred_north_whitehead">Quotes by an okay chap</a>
+            <a href="https://www.brainyquote.com/authors/alfred_north_whitehead" target="_blank">Quotes by an okay chap</a>
         </div>
     </body>
 </html>
