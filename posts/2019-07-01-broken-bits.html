@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Metric Space -  Prove that a rod of integral unit length be broken in 2^(n-1) different ways</title>
+        <link rel="stylesheet" href="../css/default.css" />
+        <link rel="stylesheet" href="../js/highlight/styles/nord.css">
+        <script src="../js/highlight/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"> 
+        </script>
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Metric-Space</a>
+            </div>
+            <div id="navigation">
+                <a href="../index.html">Back</a>
+            </div>
+        </div>
+
+        <div id="content"> 
+            <h1> Prove that a rod of integral unit length be broken in \( 2^{n-1} \) different ways</h1> 
+            <div class="info"> Posted on July 1, 2019 </div>
+            <h3>Assumptions</h3>
+             <ol style="list-style-type: decimal"> 
+                 <li>The rod to be broken into parts is of length \( n \)</li> 
+                 <li>The parts this rod can be broken into can only be of integral lengths i.e \( x \in \mathbb{N} \)</li> 
+             </ol>
+             <p> If you do not want the answer, but just want a hint ... <u> think of cuts and the places you can place these cuts to form parts </u></p>
+             <p>  Now given a bar of length n, the number of cuts to get a maximum of \( n \) parts of unit length is atmost \( n-1 \) cuts </p>
+             <p> This step also determines the sequential locations of cuts. </p>
+             <p> The locations of these cuts cannot be placed elsewhere as otherwise we would not get unit integral parts </p>
+             <p> Now let's imagine a scenario as such: </p> <p><u> given I want to cut the rod in exactly one place, where should I place the cut? (each choice of cut location is a different way of cutting the rod) </u> <p>
+             <p> I have \( n-1 \) locations to choose from so <strong> the answer is \( n-1 \) </strong>
+             <p><u> Given I want to cut the rod in exactly two places, where should I place these cuts? </u><p>
+             <p>You could be tempted to say \( ( n-1 )* ( n-2 ) \) but recognize this: the ordering of the location doesn't matter so the correct answer is  \( \frac{(n-1) * (n-2)}{2} \) <strong> OR </strong> \( C^{n-1}_{2} \)</p> 
+
+             <h3> We add the results for cases all the way to (n-1) (We also throw in the zeroth case) </h3>
+             <p> \( C^{n-1}_{0}  + C^{n-1}_{1} + C^{n-1}_{3} + C^{n-1}_{4} + ... \) </p>
+
+             <h4> Recognize the above as the sum of the binomial coefficients </h4>
+             <p> Now what is this sum equal to? </p>
+
+             <h4> Sum of binomial coefficients </h4>
+             <p>From the binomial theorem</p>
+             <p> \( (x+y)^{n} = C^{n}_{0}x^{n}y^{0} + C^{n}_{1}x^{n-1}y^{1} + C^{n}_{2}x^{n-2}y^{2} + C^{n}_{3}x^{n-3}y^{3} + ... \) </p>
+             <p> <u>replacing \( x \) with 1 and \( y \) with 1 </u><p>
+             <p> \( (1+1)^{n} = C^{n}_{0}1^{n}1^{0} + C^{n}_{1}1^{n-1}*1^{1} + C^{n}_{2}1^{n-2}*1^{2} + C^{n}_{3}1^{n-3}*1^{3} + ... \)</p>
+             <p> \( 2^{n} = C^{n}_{0} + C^{n}_{1} + C^{n}_{2} + C^{n}_{3} + ... \)</p>
+
+
+             <h3> Trumpets !!!!</h3>
+             <p> \( C^{n-1}_{0}  + C^{n-1}_{1} + C^{n-1}_{3} + C^{n-1}_{4} + ...  = 2^{n-1}\) </p>
+        </div>
+
+        <div id="footer">
+            <a href="https://www.brainyquote.com/authors/alfred_north_whitehead" target="_blank">Quotes by an okay chap</a>
+        </div>
+    </body>
+</html>
+
+
