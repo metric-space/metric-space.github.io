@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Metric Space - Use a chance tree to optimize winning </title>
+        <link rel="stylesheet" href="../css/default.css" />
+        <link rel="stylesheet" href="../js/highlight/styles/nord.css">
+        <script src="../js/highlight/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"> 
+        </script>
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Metric-Space</a>
+            </div>
+            <div id="navigation">
+                <a href="../index.html">Back</a>
+            </div>
+        </div>
+
+        <div id="content"> 
+            <h1> Use a chance tree to optmize winning</h1> 
+            <div class="info"> Posted on October 2nd, 2021 </div>
+            <h3>Problem statement (Problem 6.17 from Understanding Probability (Henk Tijms) [Third edition])</h3>
+            <blockquote>
+              In a television game show, you can win 10,000 dollars by guessing the ocomposition of red and white marbles contained in a nontransparent vase. The vase contains a very large number of marbles. You must guess whether the vase has twice as many red marbles as white ones, or whether it has twice as many white ones as red ones. Beforehand, both possibilities are equally likely to you. To help you guess, you are given a one-time opportunity of picking one, two or three marbles out of the vase. This action, however, comes at a cost. If you opt to choose one marble out of the vase, $750 will be subtracted from the $10,000 should you win. Two marbles will cost you $1000 and three marbles will cost you $1500. Set up a chance tree to determine which strategy will help you maximize your winnings.
+            </blockquote>
+            <h4> Approach to the solution </h4>
+            <p> Essentially the problem boils down to this: given an observation what this it tell us about what urn it came from? <p>
+            <p> We use chance trees to look at the paths associated with an observing occuring with the highest chance <p>
+            <p> For example under drawing once, if we observe a red ball what is the probability it came from the red-majority urn? </p>
+            <p> Let's look at the chance tree </p>
+            <image src="../images/chance_tree_1.png" />
+            <p> Let's try calculating two probabilities to start off: </p>
+            <ol>
+                <li> Probability of the urn being the red dominant one given a red ball has been drawn (1) </li>
+                <li> Probability of the urn being the white dominant one given a red ball has been drawn (2) </li>
+            </ol>
+            <p> To calculate both, we look at the two paths that end in a red ball being observed (the leaves marked with a <strong> R </strong>)
+                <br/>
+                and the probability for (1) is \(\frac{0.5 * \frac{2}{3}}{0.5 *(\frac{2}{3} + \frac{1}{3})}\) which is equal to \(\frac{2}{3}\)
+                <br/>
+                and the probability for (2) is \(\frac{0.5 * \frac{1}{3}}{0.5 *(\frac{2}{3} + \frac{1}{3})}\) which is equal to \(\frac{1}{3}\) </p>
+
+                <p> So given the observance of a red ball we're more likely to say it came from the red dominant one, so we mark that path in the chance tree as the preferred one to be that "occured" if we see a red ball <br/>
+                 Using a similar line of reasoning for a white ball, we mark the route associated with the White ball having a probability of \( 0.5*\frac{2}{3}\) as the preferred one </p>
+                <p><u>So, if everytime we observe the colo(u)r of a ball, if we go with the preferred routes, what the are the chances we get it correct?</u></p>
+                The formula => \( \frac{\sum P(preferred-route)}{ \sum P(preferred-route) + \sum P(non-preferred-route) } \)
+                which is equal to \( \frac{0.5*(\frac{2}{3} + \frac{2}{3})}{0.5*(\frac{2}{3} + \frac{2}{3}) + 0.5*(\frac{1}{3} + \frac{1}{3})} = \frac{2}{3} \)
+                <h4> It's great we have an answer but it means diddly squat if we can't verify it in some way </h4>
+                <p>  We are blessed with the modern computer that can run simulation for most of our probablistic experiments in a reasonable time. We'll be using clojure to write a simulation to verify our theoretical estimate above. The code will be written in alphabet tagged fragments because we'll be reusing them further along </p>
+
+
+                (A)
+                <pre><code class="clojure">
+;; code to create an infinite stream representing an infinitely large red-dominant urn
+(defn red-dominant   [] (repeatedly #(rand-nth [:red :red :white])))
+;; code to create an infinite stream representing an infinitely large white-dominant urn
+(defn white-dominant [] (repeatedly #(rand-nth [:red :white :white])))</code></pre>
+
+                <p> To reiterate our strategy (for draw once) is to draw a ball, if it is red in colour we predict the urn to be the red-dominant one and if it's white, we predict the urn to be the white-dominant one </p>
+
+              This in clojure is as follows (won't bother alphabet tagging this as we'll be using this once)
+              <pre><code class="clojure">
+(defn predict [urn]
+  (if (= (first urn) :red)
+    :red-dom
+    :white-dom))
+              </code></pre>
+
+              <p>The rest of the utility to actually use this and execute the trials and tally results are as follows </p>
+
+              (B)
+              <pre><code class="clojure">
+
+;; produces a white-dominant urn or a red-dominant urn stream
+;; half of the time and checks to see if the prediction against the stream is correct
+;; outputs a boolean
+(defn trial []
+ (let [[label stream-fn]  (rand-nth [[:red-dom red-dominant]
+                                     [:white-dom white-dominant]])]
+   (= (predict (stream-fn)) label)))
+
+;; Counter utility (NOT IMPORTANT), p is a predicate
+(defn counter [p]
+  (fn [acc k]
+   (-> acc
+       (update :hits #((or (and (p k) inc) identity) %))
+       (update :total inc))))
+
+(def true-counter (counter #(=  true %)))
+
+;; produces sequence of trials executed 100000 times
+(def trials (take 1000000 (repeatedly trial)))
+
+;; where the magic happens
+(reduce true-counter {:total 0 :hits 0}  trials)
+;; output is  {:total 1000000, :hits 666294}
+              </pre></code class="clojure">
+
+              <p> The output is consistent with our theoretical prediction </p>
+
+              <h3> Warning: That was the easy part. Now moving on to the two draws part </h3>
+              <p> Let's look at the chance tree for two draws </p>
+              <image src="../images/chance_tree_2.png" />
+              <p> There are two things to note here <p>
+            <ol>
+                <li> <strong>RW</strong> in the leaf refers to both combinations i.e RW and WR </li>
+                <li> In contrast to the one draw, we are now left with draw states that have equal probability of being matched with either urn ... making predicition troublesome. Interestingly more troublesome than just the one draw. You'd think more evidence makes for easier predictability</li>
+            </ol>
+            <p> Let's look at the strategy for the two draws in two parts </p>
+            <ol>
+                <li>Part 1 doesn't consider the equal probability draw states as preferred paths (i.e RW, WR) [spoiler alert: this doesn't end well]</li>
+                <li>Part 2 <strong>does</strong> consider the equal probability draw states as preferred paths [spoiler alert: it doesn't do much in a relative sense]</li>
+            </ol>
+
+
+            ;; Note about how the probability of drawing a red from the red dominant urn is 2/3
+            ;; and for the white dominant urn
+
+
+            ;; Draw 1
+
+            ;; looking at the tree, let's say
+
+
+
+             <ol style="list-style-type: decimal"> 
+                 <li>The rod to be broken into parts is of length \( n \)</li> 
+                 <li>The parts this rod can be broken into can only be of integral lengths i.e \( x \in \mathbb{N} \)</li> 
+             </ol>
+             <p> If you do not want the answer, but just want a hint ... <u> think of cuts and the places you can place these cuts to form parts </u></p>
+             <p>  Now given a bar of length n, the number of cuts to get a maximum of \( n \) parts of unit length is atmost \( n-1 \) cuts </p>
+             <p> This step also determines the sequential locations of cuts. </p>
+             <p> The locations of these cuts cannot be placed elsewhere as otherwise we would not get unit integral parts </p>
+             <p> Now let's imagine a scenario as such: </p> <p><u> given I want to cut the rod in exactly one place, where should I place the cut? (each choice of cut location is a different way of cutting the rod) </u> <p>
+             <p> I have \( n-1 \) locations to choose from so <strong> the answer is \( n-1 \) </strong>
+             <p><u> Given I want to cut the rod in exactly two places, where should I place these cuts? </u><p>
+             <p>You could be tempted to say \( ( n-1 )* ( n-2 ) \) but recognize this: the ordering of the location doesn't matter so the correct answer is  \( \frac{(n-1) * (n-2)}{2} \) <strong> OR </strong> \( C^{n-1}_{2} \)</p> 
+
+             <h3> We add the results for cases all the way to (n-1) (We also throw in the zeroth case) </h3>
+             <p> \( C^{n-1}_{0}  + C^{n-1}_{1} + C^{n-1}_{3} + C^{n-1}_{4} + ... \) </p>
+
+             <h4> Recognize the above as the sum of the binomial coefficients </h4>
+             <p> Now what is this sum equal to? </p>
+
+             <h4> Sum of binomial coefficients </h4>
+             <p>From the binomial theorem</p>
+             <p> \( (x+y)^{n} = C^{n}_{0}x^{n}y^{0} + C^{n}_{1}x^{n-1}y^{1} + C^{n}_{2}x^{n-2}y^{2} + C^{n}_{3}x^{n-3}y^{3} + ... \) </p>
+             <p> <u>replacing \( x \) with 1 and \( y \) with 1 </u><p>
+             <p> \( (1+1)^{n} = C^{n}_{0}1^{n}1^{0} + C^{n}_{1}1^{n-1}*1^{1} + C^{n}_{2}1^{n-2}*1^{2} + C^{n}_{3}1^{n-3}*1^{3} + ... \)</p>
+             <p> \( 2^{n} = C^{n}_{0} + C^{n}_{1} + C^{n}_{2} + C^{n}_{3} + ... \)</p>
+
+
+             <h3> Trumpets !!!!</h3>
+             <p> \( C^{n-1}_{0}  + C^{n-1}_{1}  + C^{n-1}_{2} + C^{n-1}_{3} + C^{n-1}_{4} + ...  = 2^{n-1}\) </p>
+        </div>
+
+        <div id="footer">
+            <a href="https://www.brainyquote.com/authors/alfred_north_whitehead" target="_blank">Quotes by an okay chap</a>
+        </div>
+    </body>
+</html>
