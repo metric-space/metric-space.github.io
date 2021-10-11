@@ -24,7 +24,7 @@
 
         <div id="content"> 
             <h1> Use a chance tree to optmize winning</h1> 
-            <div class="info"> Posted on October 2nd, 2021 </div>
+            <div class="info"> Posted on October 11, 2021 </div>
             <h3>Problem statement (Problem 6.17 from Understanding Probability (Henk Tijms) [Third edition])</h3>
             <blockquote>
               In a television game show, you can win 10,000 dollars by guessing the ocomposition of red and white marbles contained in a nontransparent vase. The vase contains a very large number of marbles. You must guess whether the vase has twice as many red marbles as white ones, or whether it has twice as many white ones as red ones. Beforehand, both possibilities are equally likely to you. To help you guess, you are given a one-time opportunity of picking one, two or three marbles out of the vase. This action, however, comes at a cost. If you opt to choose one marble out of the vase, $750 will be subtracted from the $10,000 should you win. Two marbles will cost you $1000 and three marbles will cost you $1500. Set up a chance tree to determine which strategy will help you maximize your winnings.
@@ -66,7 +66,7 @@
 
               This in clojure is as follows (won't bother alphabet tagging this as we'll be using this once)
               <pre><code class="clojure">
-(defn predict [urn]
+(defn predict-1 [urn]
   (if (= (first urn) :red)
     :red-dom
     :white-dom))
@@ -80,27 +80,29 @@
 ;; produces a white-dominant urn or a red-dominant urn stream
 ;; half of the time and checks to see if the prediction against the stream is correct
 ;; outputs a boolean
-(defn trial []
- (let [[label stream-fn]  (rand-nth [[:red-dom red-dominant]
-                                     [:white-dom white-dominant]])]
-   (= (predict (stream-fn)) label)))
+(defn trial [prediction-func]
+  (let [[x f]      (rand-nth [[:red-dom red-dominant]
+                              [:white-dom white-dominant]])]
+    (= (prediction-func (f)) x)))
 
-;; Counter utility (NOT IMPORTANT), p is a predicate
-(defn counter [p]
-  (fn [acc k]
-   (-> acc
-       (update :hits #((or (and (p k) inc) identity) %))
-       (update :total inc))))
+;; list that tallies number of trues from a sequence of boolean values
+(defn counter [list]
+  (let [freq (frequencies list)
+        t-count (get freq true 0)
+        f-count (get freq false 0)]
+    (/ (float t-count) (+ t-count f-count))))
 
-(def true-counter (counter #(=  true %)))
+;; main function to run
+(defn calculate [prediction-fn]
+  (counter (repeatedly 1000000 #(trial prediction-fn))))
 
-;; produces sequence of trials executed 100000 times
-(def trials (take 1000000 (repeatedly trial)))
-
-;; where the magic happens
-(reduce true-counter {:total 0 :hits 0}  trials)
-;; output is  {:total 1000000, :hits 666294}
               </pre></code class="clojure">
+
+              Assuming A, B and the predict-1 are loaded in the repl,  if we run the following snippet
+
+              <pre><code class="clojure">
+(calculate prediction-1) ;; we should get around 0.66716
+              </code></pre>
 
               <p> The output is consistent with our theoretical prediction </p>
 
@@ -127,7 +129,7 @@
             <h4>Two draws: Part 1: Simulation results</h4>
             (C)
             <pre><code class="clojure">
-(defn predict [urn]
+(defn predict-2a [urn]
   (let [draws (take 2 urn)]
     (cond
       (= draws [:red :red]) :red-dom
@@ -135,74 +137,98 @@
       :else nil)))
             </pre></code class="clojure">
 
-            and if we run Fragment B again we should get the following printed out
+            Assuming A, B and the predict-1 are loaded in the repl,  if we run the following snippet
 
             <pre><code class="clojure">
-{:total 1000000, :hits 444175}
-            </pre></code class="clojure">
+(calculate prediction-2a) ;; we should get around 0.444175
+            </code></pre>
 
             <h4>Two draws: Part 2: Theoretical Calculation</h4>
-            So the theoretical formula here is a bit hard to defined because here though I am taking both paths related to RW because only one of them can happen at a time, I attribute 
+            <p>Here we decide to predict red-dominant urn when confronted with any permutation of <strong>RW</strong> </p>
+            <p> \( \frac{\sum P(preferred-route)}{ \sum P(preferred-route) + \sum P(non-preferred-route) } \) </p>
+            which is equal to \( \frac{0.5*(\frac{4}{9} + \frac{4}{9} + \frac{4}{9})}{0.5*(\frac{4}{9} + \frac{4}{9} + \frac{1}{9}) + 0.5*(\frac{4}{9} + \frac{4}{9} + \frac{1}{9})} = \frac{6}{9} \) = 0.6666...</p>
 
             <h4>Two draws: Part 2: Simulation results</h4>
-            <p> for this simulation ode, we make a slight adjustment to the previosuly defined code fragment (C) </p>
+            <p> for this simulation ode, we make a slight adjustment to the previously defined code fragment (C) </p>
             <pre><code class="clojure">
-(defn predict [urn]
+(defn predict-2b [urn]
   (let [draws (take 2 urn)]
     (cond
       (= draws [:red :red]) :red-dom
       (= draws [:white :white]) :white-dom
-      :else (rand-nth [:red-dom :white-dom]) ; modified part
+      :else :red-dom ; modified part
   )))
             </pre></code class="clojure">
 
-            and if we run Fragment B again we should get the following printed out
+            Assuming A, B and the predict-2b are loaded in the repl,  if we run the following snippet
 
             <pre><code class="clojure">
- {:total 1000000, :hits 666943}
-            </pre></code class="clojure">
+(calculate prediction-2b) ;; we should get around 0.666013
+            </code></pre>
 
+            <p> The output is consistent with our theoretical prediction </p>
 
-            ;; Note about how the probability of drawing a red from the red dominant urn is 2/3
-            ;; and for the white dominant urn
+            <p><u><strong>Note: </strong></u></p>
+            <p>For part 2, you'd get the same results when you sub in the below for prediction when you hit any permutation of <strong>RW</strong> </p>
+            <ol>
+                <li> (given) predict red dominant urn </li>
+                <li> predict white dominant urn (reason: same as above)</li>
+                <li> switch randomly  between red dominant urn and white dominant (reason: see <a href="./2021-10-10-every-ht-seq-on-avg-is-equal-to-50-percent-of-every-other-ht-seq.html">  Prove that every head-tail sequence is 50% equal to every other head-tail sequence of the same length (on average) </a>)</li>
+            </ol>
 
+            <h3> Now Let's look at the chance tree for three draws </h3>
+            <image src="../images/chance_tree_3.png" />
+            <p> There are two things to note here <p>
+                <ol>
+                    <li> <strong>RRW</strong> in the leaf refers to all permutations i.e RRW, RWR and WRR </li>
+                    <li> <strong>RWW</strong> in the leaf refers to all permutations i.e RWW, WRW and WWR </li>
+                    <li> In contrast to the two draw part, we do have qual draw states that have equal probability of being matched with either urn ... making prediction sooooo much nicer</li>
+                </ol>
 
-            ;; Draw 1
+                Our strategy is (for straightforward reasons) :
+                <ol>
+                    <li>if we draw RRR, we predict red dominant urn</li>
+                    <li>if we draw RRW (any permutation), we predict red dominant urn</li>
+                    <li>if we draw RWW (any permutation), we predict white dominant urn</li>
+                    <li>if we draw WWW (any permutation), we predict white dominant urn</li>
+                </ol>
+                <p> Let's see how this strategy fairs theoretically and in simulation</p>
 
-            ;; looking at the tree, let's say
+                <h4>Three draws:  Theoretical Calculation</h4>
+                <p> \( \frac{\sum P(preferred-route)}{ \sum P(preferred-route) + \sum P(non-preferred-route) } \) </p>
+                which is equal to \( \frac{0.5*(\frac{8}{27} + \frac{12}{27} + \frac{12}{27} + \frac{8}{27})}{0.5*(\frac{8}{27} + \frac{12}{27} + \frac{12}{27} + \frac{8}{27}) + 0.5*(\frac{1}{27} + \frac{1}{27} + \frac{6}{27} + \frac{6}{27})} = \frac{20}{27} \) = 0.74074074 </p>
 
+                <h4>Three draws:  Simulation</h4>
+                <p> for this simulation ode, we make a slight adjustment to the previously defined code fragment (C) </p>
+                <pre><code class="clojure">
+(defn predict-3 [urn]
+  (let [red-draws (-> (take 3 urn)
+                      frequencies
+                      (get :red))]
+    (condp = red-draws
+      3 :red-dom
+      2 :red-dom
+      1 :white-dom
+      0 :white-dom)))
+                </pre></code class="clojure">
 
+                Assuming A, B and the predict-3 are loaded in the repl,  if we run the following snippet
 
-             <ol style="list-style-type: decimal"> 
-                 <li>The rod to be broken into parts is of length \( n \)</li> 
-                 <li>The parts this rod can be broken into can only be of integral lengths i.e \( x \in \mathbb{N} \)</li> 
-             </ol>
-             <p> If you do not want the answer, but just want a hint ... <u> think of cuts and the places you can place these cuts to form parts </u></p>
-             <p>  Now given a bar of length n, the number of cuts to get a maximum of \( n \) parts of unit length is atmost \( n-1 \) cuts </p>
-             <p> This step also determines the sequential locations of cuts. </p>
-             <p> The locations of these cuts cannot be placed elsewhere as otherwise we would not get unit integral parts </p>
-             <p> Now let's imagine a scenario as such: </p> <p><u> given I want to cut the rod in exactly one place, where should I place the cut? (each choice of cut location is a different way of cutting the rod) </u> <p>
-             <p> I have \( n-1 \) locations to choose from so <strong> the answer is \( n-1 \) </strong>
-             <p><u> Given I want to cut the rod in exactly two places, where should I place these cuts? </u><p>
-             <p>You could be tempted to say \( ( n-1 )* ( n-2 ) \) but recognize this: the ordering of the location doesn't matter so the correct answer is  \( \frac{(n-1) * (n-2)}{2} \) <strong> OR </strong> \( C^{n-1}_{2} \)</p> 
+                <pre><code class="clojure">
+(calculate prediction-3) ;; we should get around 0.74074
+                </code></pre>
 
-             <h3> We add the results for cases all the way to (n-1) (We also throw in the zeroth case) </h3>
-             <p> \( C^{n-1}_{0}  + C^{n-1}_{1} + C^{n-1}_{3} + C^{n-1}_{4} + ... \) </p>
+                <p> The output is consistent with our theoretical prediction </p>
 
-             <h4> Recognize the above as the sum of the binomial coefficients </h4>
-             <p> Now what is this sum equal to? </p>
+                <h4>Results</h4>
+                <ul>
+                    <li>If we go in blind, we have a 50% chance of winning</li>
+                    <li> draw 1 at a cost of 750 seems better than draw 2 at the cost of 1000 given the chances of getting it right is the same </li>
+                    <li> 1500 for a maximum chance of 74% of getting it right is pretty decent </li>
+                </ul>
 
-             <h4> Sum of binomial coefficients </h4>
-             <p>From the binomial theorem</p>
-             <p> \( (x+y)^{n} = C^{n}_{0}x^{n}y^{0} + C^{n}_{1}x^{n-1}y^{1} + C^{n}_{2}x^{n-2}y^{2} + C^{n}_{3}x^{n-3}y^{3} + ... \) </p>
-             <p> <u>replacing \( x \) with 1 and \( y \) with 1 </u><p>
-             <p> \( (1+1)^{n} = C^{n}_{0}1^{n}1^{0} + C^{n}_{1}1^{n-1}*1^{1} + C^{n}_{2}1^{n-2}*1^{2} + C^{n}_{3}1^{n-3}*1^{3} + ... \)</p>
-             <p> \( 2^{n} = C^{n}_{0} + C^{n}_{1} + C^{n}_{2} + C^{n}_{3} + ... \)</p>
+                <h1>Draw 3 at 1500 it is!!!!</h1>
 
-
-             <h3> Trumpets !!!!</h3>
-             <p> \( C^{n-1}_{0}  + C^{n-1}_{1}  + C^{n-1}_{2} + C^{n-1}_{3} + C^{n-1}_{4} + ...  = 2^{n-1}\) </p>
-        </div>
 
         <div id="footer">
             <a href="https://www.brainyquote.com/authors/alfred_north_whitehead" target="_blank">Quotes by an okay chap</a>
