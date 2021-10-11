@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Metric Space -  Prove that every head-tail sequence is 50% equal to every other head-tail sequence of the same length (on average) </title>
+        <link rel="stylesheet" href="../css/default.css" />
+        <link rel="stylesheet" href="../js/highlight/styles/nord.css">
+        <script src="../js/highlight/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"> 
+        </script>
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Metric-Space</a>
+            </div>
+            <div id="navigation">
+                <a href="../index.html">Back</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1> Prove that every head-tail sequence is 50% equal to every other head-tail sequence of the same length (on average)</h1>
+            <div class="info"> Posted on October 10, 2021 </div>
+            <h3>Definitions and assumptions</h3>
+             <ol style="list-style-type: decimal">
+                 <li>A head-tail sequence of length n is a sequence of outcomes of tossing a normal coin n times</li>
+                 <li>Two ht-sequences of the length n are x percentage the same when \( \frac{\sum{no-of-indices-where-values-match}} {n} \times 100 \) = x % </li>
+             </ol>
+
+             <p>The way I want to go about showing this is </p>
+             <ol>
+                 <li> code that led to this chase
+                 <li>Simulation via clojure code to show observations that further confirm the 50% match stands true for various sequence lengths from a combinatoric's view</li>
+                 <li>Theoretical proof</li>
+             </ol>
+             <h3> Initial chase </h3>
+
+             <pre><code class="clojure">
+(defn gen-ht-sequence []
+  (repeatedly 10000 #(rand-nth [:h :t])))
+
+(get (frequencies (map = (gen-ht-sequence) (gen-ht-sequence))) true) ;; always returns about 5000
+             </code></pre>
+
+             <p> The above code returned about half regardless of how large the length of the sequence was increased to be, so I thought it might have something to do with Probability theory's linked other: Combinatorics </p>
+
+
+             <h3> Simulation </h3>
+
+             <p>For this snippet you might want to put this library <a href="https://github.com/clojure/math.combinatorics" target=”_blank”> https://github.com/clojure/math.combinatorics </a> in your project.clj</p>
+
+             <pre><code class="clojure">
+(defn match-percentage
+  "Takes two sequences and outputs the match percentage"
+  [x y]
+   (* 100
+    (/ (get  (frequencies (map = x y)) true 0)
+      (float (count x)))))
+
+(defn avg [l]
+  (/ (apply + l) (float (count l))))
+
+;; main code, output is a list of percentages
+;; take in a sequence length
+;; generate all head-tail sequences of input length
+;; compare each sequence to every other sequence for match percentage and aggregates this via an average
+;; this average is calculated for every sequence
+(defn experiment3 [n]
+  (let [s (combo/selections [:h :t] n)]
+    (pmap (fn [x]
+            (->> s
+                 (map #(match-percentage x %))
+                 avg)) s)))
+
+             </code></pre>
+
+             <h3>Theoretical Proof</h3>
+
+             <p>Lets's start by making the whole x % equivalent to a more simplified and formal definition: </p>
+             <p> Given X and Y are two sequences of equal length that have k indices where they match in value, let the function <strong>f</strong> be one that tells us the number of indices where they match in value i.e <strong>f(X,Y) = k</strong></p>
+
+             <p>Picking a sequence from a list of sequences of length n (we call this list XS) of the same length, let's say this sequence is X</p>
+
+             <p> Now we want the set size of this expression \( \forall Y \in XS, f(X,Y)=k\)</p>
+             <p> this boils down a problem of combinatorics where you have a list of indices and you want to know how many combinations of length k can you obtain</p>
+             <p> The answer: \(C^n_k\) </p>
+             <p> Now because X and Y are of length n, the range of <strong>f</strong> is [0..n]  </p>
+             <p> Hopefully, it comes as no surprise that the \(count(Y), \forall Y \in XS \) such that \(f(X,Y) = k,  \forall k \in [0..n] \) is equal to \(2^n\) </p>
+             <p>If the reason isn't clear: let's explicitly look at the sum </p>
+             <p> \( C^{n}_{0} + C^{n}_{1} + C^{n}_{2} + C^{n}_{3} + ...\) </p>
+             <p> These are the coefficients of the general expansion of \((a+b)^n\) and to get the sum here we take a = 1 and b =1 and sence the sum is \((1 + 1)^n\) = \(2^n\) -- <strong>A</strong> </p>
+             <p> Now we want to weigh all these coefficients to calculate the average as the end goal, we know these coefficients signify the various ways X could be equivalent to a arbitary sequence Y in k ways, so we multiply each coefficient with the associated k and divide by n </p>
+             <p> \( C^{n}_{0}*(\frac{0}{n}) + C^{n}_{1}*(\frac{1}{n}) + C^{n}_{2}*(\frac{2}{n}) + C^{n}_{3}*(\frac{3}{n}) + C^{n}_{4}*(\frac{4}{n}) + ...\)  -- <strong>B</strong></p>
+             <p>\(\frac{A}{B}*100\) will give me the average</p>
+             <p> i.e \(\frac{ C^{n}_{0}*(\frac{0}{n}) + C^{n}_{1}*(\frac{1}{n}) + C^{n}_{2}*(\frac{2}{n}) + C^{n}_{3}*(\frac{3}{n}) + C^{n}_{4}*(\frac{4}{n}) + ...} {C^{n}_{0} + C^{n}_{1} + C^{n}_{2} + C^{n}_{3} + C^{n}_{4}...} * 100 \) </p>
+
+             <p> \( \frac{\sum\limits_{k=0}^n{C^{n}_k*(\frac{k}{n})}}{\sum\limits_{k=0}^n{C^{n}_k}}*100\)</p>
+
+             <p> I want to take a slight detour to make the numerator of the above expression easier to deal with </p>
+
+             <h4>Lemma: \( C^{n}_k*(\frac{k}{n})\) = \( C^{n-1}_{k-1}\) </h4>
+             <p> \( =  C^{n}_k*(\frac{k}{n}) = \frac{n!}{k! (n - k)!}*\frac{k}{n} = \frac{n(n-1)!}{k(k-1)!(n-1-(k-1))!}* \frac{k}{n}  = \frac{(n-1)!}{(k-1)!(n-1-(k-1))!} = C^{n-1}_{k-1} \)</p>
+
+             <p>Now that we're done with the lemma, I do want to make a slight adjustment to the equation before the lemma, so that we aren't left with doubts about the limits on the summation sign</p>
+
+             <p> \( = \frac{0 + \sum\limits_{k=1}^n{C^{n}_k*(\frac{k}{n})}}{\sum\limits_{k=0}^n{C^{n}_k}}*100\)</p>
+
+             <p> \( =  \frac{0 + \sum\limits_{k=1}^n{C^{n-1}_{k-1}}}{\sum\limits_{k=0}^n{C^{n}_k}}*100 \) </p>
+             <p> \(=  \frac{0 + \sum\limits_{k=0}^{n-1}{C^{n-1}_{k}}}{\sum\limits_{k=0}^n{C^{n}_k}}*100  = \frac{2^{n-1}}{2^n}*100 \)</p>
+
+             <p> = 50% </p>
+
+             <h3>\( \square \)</h3>
+        </div>
+
+        <div id="footer">
+            <a href="https://www.brainyquote.com/authors/alfred_north_whitehead" target="_blank">Quotes by an okay chap</a>
+        </div>
+    </body>
+</html>
