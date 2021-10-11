@@ -30,10 +30,10 @@
               In a television game show, you can win 10,000 dollars by guessing the ocomposition of red and white marbles contained in a nontransparent vase. The vase contains a very large number of marbles. You must guess whether the vase has twice as many red marbles as white ones, or whether it has twice as many white ones as red ones. Beforehand, both possibilities are equally likely to you. To help you guess, you are given a one-time opportunity of picking one, two or three marbles out of the vase. This action, however, comes at a cost. If you opt to choose one marble out of the vase, $750 will be subtracted from the $10,000 should you win. Two marbles will cost you $1000 and three marbles will cost you $1500. Set up a chance tree to determine which strategy will help you maximize your winnings.
             </blockquote>
             <h4> Approach to the solution </h4>
-            <p> Essentially the problem boils down to this: given an observation what this it tell us about what urn it came from? <p>
-            <p> We use chance trees to look at the paths associated with an observing occuring with the highest chance <p>
+            <p> Essentially the problem boils down to this: given an observation what this observation tell us about what urn it came from? <p>
+            <p> We use chance trees to look at the paths associated with an observation occuring with the highest chance <p>
             <p> For example under drawing once, if we observe a red ball what is the probability it came from the red-majority urn? </p>
-            <p> Let's look at the chance tree </p>
+            <p> Let's look at the chance tree (<strong>Note</strong>: W is a white ball being drawn and R is a red ball being drawn)</p>
             <image src="../images/chance_tree_1.png" />
             <p> Let's try calculating two probabilities to start off: </p>
             <ol>
@@ -109,7 +109,7 @@
               <image src="../images/chance_tree_2.png" />
               <p> There are two things to note here <p>
             <ol>
-                <li> <strong>RW</strong> in the leaf refers to both combinations i.e RW and WR </li>
+                <li> <strong>RW</strong> in the leaf refers to both permutations i.e RW and WR </li>
                 <li> In contrast to the one draw, we are now left with draw states that have equal probability of being matched with either urn ... making predicition troublesome. Interestingly more troublesome than just the one draw. You'd think more evidence makes for easier predictability</li>
             </ol>
             <p> Let's look at the strategy for the two draws in two parts </p>
@@ -117,6 +117,50 @@
                 <li>Part 1 doesn't consider the equal probability draw states as preferred paths (i.e RW, WR) [spoiler alert: this doesn't end well]</li>
                 <li>Part 2 <strong>does</strong> consider the equal probability draw states as preferred paths [spoiler alert: it doesn't do much in a relative sense]</li>
             </ol>
+
+            <h4>Two draws: Part 1: Theoretical Calculation</h4>
+            \( \frac{\sum P(preferred-route)}{ \sum P(preferred-route) + \sum P(non-preferred-route) } \)
+            which is equal to \( \frac{0.5*(\frac{4}{9} + \frac{4}{9})}{0.5*(\frac{4}{9} + \frac{4}{9} + \frac{1}{9}) + 0.5*(\frac{4}{9} + \frac{4}{9} + \frac{1}{9})} = \frac{4}{9} \) = 0.44444
+
+            <p>Pretty bad odds huh? We are kicking out quite a lot by letting the equal states go to waste</p>
+
+            <h4>Two draws: Part 1: Simulation results</h4>
+            (C)
+            <pre><code class="clojure">
+(defn predict [urn]
+  (let [draws (take 2 urn)]
+    (cond
+      (= draws [:red :red]) :red-dom
+      (= draws [:white :white]) :white-dom
+      :else nil)))
+            </pre></code class="clojure">
+
+            and if we run Fragment B again we should get the following printed out
+
+            <pre><code class="clojure">
+{:total 1000000, :hits 444175}
+            </pre></code class="clojure">
+
+            <h4>Two draws: Part 2: Theoretical Calculation</h4>
+            So the theoretical formula here is a bit hard to defined because here though I am taking both paths related to RW because only one of them can happen at a time, I attribute 
+
+            <h4>Two draws: Part 2: Simulation results</h4>
+            <p> for this simulation ode, we make a slight adjustment to the previosuly defined code fragment (C) </p>
+            <pre><code class="clojure">
+(defn predict [urn]
+  (let [draws (take 2 urn)]
+    (cond
+      (= draws [:red :red]) :red-dom
+      (= draws [:white :white]) :white-dom
+      :else (rand-nth [:red-dom :white-dom]) ; modified part
+  )))
+            </pre></code class="clojure">
+
+            and if we run Fragment B again we should get the following printed out
+
+            <pre><code class="clojure">
+ {:total 1000000, :hits 666943}
+            </pre></code class="clojure">
 
 
             ;; Note about how the probability of drawing a red from the red dominant urn is 2/3
