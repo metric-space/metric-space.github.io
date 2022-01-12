@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Metric Space - Rust's Typenum library internals Part - 1  </title>
+        <link rel="stylesheet" href="../css/default.css" />
+        <link rel="stylesheet" href="../js/highlight/styles/stackoverflow-dark.min.css">
+        <script src="../js/highlight/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script>
+        <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"> 
+        </script>
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Metric-Space</a>
+            </div>
+            <div id="navigation">
+                <a href="../index.html">Back</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1> Rust's Typenum library internals Part - 1 </h1>
+            <div class="info"> Posted on Jan 10, 2022 </div>
+            <!-- INTRO -->
+            <h4>This post's raison d'etre</h3>
+                <p> I've started programming in Rust. And in order to contribute an open source library that makes heavy usage of type level programming using the <a href=""> Typenum library</a> I've puzzled how the typenum library works.</p>
+                <p>This post is a stab at detailing how I broke down my understanding of the essentials of the Typenum library and also hopes to a stab at be a tutorial at type-level programming in Rust </p>
+                <h3>Warning: While the Typenum library also deals with runtime behaviour, in my regurgitation of the library's code I've only concentrated on the type-level code relevant to compile time behaviour ignoring runtime behaviour</h3>
+                <p>While the code and the idea of type-level programming is beautiful, there is no advanced magic at play here. For a brief glimpse into the simplicity of the code you might want to clone the typenum library and run the commands </p> <pre><code class="bash">cd typenum; cargo build </code></pre><p>, and open up the macro generated content present in the file <u>target/debug/build/type-*/out/consts.rs</u> and you should see a list of generated definition of type level numbers</p>
+             <!-- HIGH LEVEL  -->
+             <h4>High level view of what we're exploring in this post</h4>
+                <p> The Typenum library deals with type integers and the operations on them. Both build on binary representations expressed again at the type level. In this post we're going to go sequentially through the following list </p>
+             <ol style="list-style-type: decimal">
+                 <li> Bit presentation, NOT and OR operator (<b>all at the type level</b>)</li>
+                 <li> Unsigned Integer bit representation and Bit addition (<b> all at the type level </b>)</li>
+                 <li> Addition of Unsigned Integers (<b> at the type level </b>)</li>
+             </ol>
+             <!-- (1) -->
+             <h2>Bit presentation, NOT and OR operator</h2>
+             <pre>
+             <code class="rust">
+// empty to trait to be able to refer to the 0 and 1 bit together
+pub trait Bit:Default {}
+
+// bit 0
+#[derive(PartialEq,Debug, Default)]
+pub struct B0;
+impl Bit for B0 {}
+
+
+// bit 1
+#[derive(PartialEq,Debug, Default)]
+pub struct B1;
+impl Bit for B1 {}
+
+             </code>
+             </pre>
+
+             <p> Hopefully the above should be straightforward code. If not, here's a bit explanation: I have two structs that are unified via a common trait called Bit that requires that the structs implementing the trait have defaults trait either implemented or somehow derived  </p>
+             <p>
+                 Now comes the first portion of the main meat. The actual type level bit functions namely not and bit-or. If nothing makes sense, solely focus on the associated type of the implemented trait. That carries the result/output of the type level functions
+             </p>
+             <p>
+We start off by overloading the Not operator from the standard library
+             </p>
+             <pre>
+             <code class="rust">
+use core::ops::{Not};
+
+// bit trait
+pub trait Bit:Default {}
+
+// bit 0
+#[derive(PartialEq,Debug, Default)]
+pub struct B0;
+impl Bit for B0 {}
+
+
+// bit 1
+#[derive(PartialEq,Debug, Default)]
+pub struct B1;
+impl Bit for B1 {}
+
+
+impl Not for B0 {
+    type Output = B1;
+    fn not(self) -> Self :: Output {
+        B1
+    }
+}
+
+impl Not for B1 {
+    type Output = B0;
+    fn not(self) -> Self :: Output {
+        B0
+    }
+}
+             </code>
+             </pre>
+             <p><u>Again, concentrate on the Output. </u></p>
+             <p>Let's start off with writing tests to see the type-level functions at play and then we'll go over questions like how the implemented traits map to standard run of the mill function structure and what even are the args here?</p>
+             <pre>
+             <code class="rust">
+use core::ops::{Not};
+
+// bit trait
+pub trait Bit:Default {}
+
+// bit 0
+#[derive(PartialEq,Debug, Default)]
+pub struct B0;
+impl Bit for B0 {}
+
+
+// bit 1
+#[derive(PartialEq,Debug, Default)]
+pub struct B1;
+impl Bit for B1 {}
+
+
+impl Not for B0 {
+    type Output = B1;
+    fn not(self) -> Self :: Output {
+        B1
+    }
+}
+
+impl Not for B1 {
+    type Output = B0;
+    fn not(self) -> Self :: Output {
+        B0
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn not_test() {
+        let a: Option&lt;B0&gt; = None;
+        let b: Option&lt;&lt;B1 as Not&gt;&gt;::Output&gt; = None;
+        assert_eq!(a, b);
+     }
+}
+             </code>
+             </pre>
+             <p>To make things clearer think of the traits here as functions and the structs as args to the function. </p>
+             <p>Let's look at the following line from the above code again</p>
+             <pre>
+                 <code class="rust">
+let b: Option<&lt;B1 as Not&gt;>::Output> = None;
+                 </code>
+             </pre>
+             <p>It does work, inspite of the type mumbo-jumbo both a and b are equal even at the type level!!! Don't believe me? try changing B0 in a's definition to B1 and then run the code</p>
+             <p>The straight-forward intepretation of the above (type-level code)code is: The associated type of the Not trait implemented by the struct B1 </p>
+             <p>The other interpretation perhaps becomes a bit clear if we introduce a typedef </p>
+             <pre>
+                 <code class="rust">
+use core::ops::{Not};
+
+// bit trait
+pub trait Bit:Default {}
+
+// bit 0
+#[derive(PartialEq,Debug, Default)]
+pub struct B0;
+impl Bit for B0 {}
+
+
+// bit 1
+#[derive(PartialEq,Debug, Default)]
+pub struct B1;
+impl Bit for B1 {}
+
+
+impl Not for B0 {
+    type Output = B1;
+    fn not(self) -> Self :: Output {
+        B1
+    }
+}
+
+impl Not for B1 {
+    type Output = B0;
+    fn not(self) -> Self :: Output {
+        B0
+    }
+}
+
+// looky here, BNot is a unary function and X the arg
+type BNot&lt;X&gt; = &lt;X as Not&gt;::Output;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn not_test() {
+      let a: Option&lt;B0&gt; = None;
+      let b: Option&lt;BNot&lt;B1&gt;&gt; = None;
+      assert_eq!(a, b);
+   }
+}
+             </code>
+             </pre>
+             <p>Hopefully the type(typedef) makes the mapping from associated-type-trait-struct to a function clear</p>
+             <p>Let's try overloading the BitOr standard definition for our Bit representation</p>
+             <pre>
+                 <code class="rust">
+use core::ops::{BitOr};
+
+// bit trait
+pub trait Bit:Default {}
+
+// bit 0
+#[derive(PartialEq,Debug, Default)]
+pub struct B0;
+impl Bit for B0 {}
+
+
+// bit 1
+#[derive(PartialEq,Debug, Default)]
+pub struct B1;
+impl Bit for B1 {}
+
+
+// technically could avoid the B0 within the triangular parens and the parens here
+impl BitOr&lt;B0&gt; for B0 {
+    type Output = B0;
+    fn bitor(self, _:B0) -> Self :: Output {
+        B0
+    }
+}
+
+// technically could avoid the B0 within the triangular parens and the parens here
+impl BitOr&lt;B1&gt; for B1 {
+     type Output = B1;
+     fn bitor(self, _:B1) -> Self :: Output {
+        B1
+     }
+}
+
+
+impl BitOr&lt;B1&gt;for B0 {
+     type Output = B1;
+     fn bitor(self, _:B1) -> Self :: Output {
+        B1
+  }
+}
+
+
+impl BitOr&lt;B0&gt;for B1 {
+     type Output = B1;
+     fn bitor(self, _:B0) -> Self :: Output {
+        B1
+  }
+}
+
+
+// looky here, BOr is a binary function, X and Y are the args
+type BOr&lt;X,Y&gt; = &lt;X as BitOr&lt;Y&gt;&gt;::Output;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn not_test() {
+      let b: Option&lt;B1&gt; = None;
+      let c: Option&lt;BOr&lt;B1,B0&gt;&gt; = None;
+      let d: Option&lt;BOr&lt;B0,B1&gt;&gt; = None;
+      assert_eq!(b, d);
+      assert_eq!(c, d);
+   }
+}
+                 </code>
+             </pre>             
+	     <p> Like I mentioned before, type level functions though beautifull aren't magical. </p><p> For the BitOr function you have to lay each every instance of possible inputs and take the order of args into account. So for the 4 possible inputs for bitor, you have to type out(or programmatically generate) the code for it</p>
+        <h2>Unsigned Integer bit representation and Bit addition</h2>
+	<p>Now we move on to creating our (unsigned)integer bit representation and putting in functions to add 0 and 1 bit to these (unsigned)integer bit representations</p>
+	<pre>
+	<code class="rust">
+use std::marker;
+
+// way to collectively refer to bits 0 and 1
+pub trait Bit:Default {}
+
+// bit 0
+#[derive(PartialEq,Debug, Default)]
+pub struct B0;
+impl Bit for B0 {}
+
+
+// bit 1
+#[derive(PartialEq,Debug, Default)]
+pub struct B1;
+impl Bit for B1 {}
+
+// way to collectively refer to 0 and
+pub trait Unsigned:Default {}
+
+#[derive(PartialEq, Debug, Default)]
+pub struct UTerm;
+impl Unsigned for UTerm {}
+
+// the marker bit is to get the compilet to shutup about the on-usage of 
+// the declared generic type variables
+#[derive(PartialEq, Debug, Default)]
+pub struct UInt&lt;U:Unsigned,B:Bit&gt;{
+ _marker: marker::PhantomData&lt;(U,B)&gt;
+}
+impl &lt;U: Unsigned,B: Bit&gt; Unsigned for UInt&lt;U,B&gt;{}
+
+// T
+type U0 = UTerm;
+// T1
+type U1 = UInt&lt;UTerm,B1&gt;;
+// T10
+type U2 = UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;;
+// T11
+type U3 = UInt&lt;UInt&lt;UTerm,B1&gt;,B1&gt;;
+// T100
+type U4 = UInt&lt;UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;,B0&gt;;
+// T101
+type U5 = UInt&lt;UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;,B1&gt;;
+
+	</code>
+	<p> There is a lot to unpack here </p>
+	<p> Like we did we  </p>
+	</pre>
+        <div id="footer">
+            <a href="https://www.brainyquote.com/authors/alfred_north_whitehead" target="_blank">Quotes by an okay chap</a>
+        </div>
+    </body>
+</html>
