@@ -327,9 +327,241 @@ type U4 = UInt&lt;UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;,B0&gt;;
 type U5 = UInt&lt;UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;,B1&gt;;
 
 	</code>
-	<p> There is a lot to unpack here </p>
-	<p> Like we did we  </p>
 	</pre>
+	<p> There is a lot to unpack here </p>
+	<p> Like we did with the our 0 and 1 structs and the overarching trait, we do the same for our stab at binary representation of unsigned integers i.e two structs which in this case are zero (<b>UTerm</b>) and the general unsigned integer(<b>UInt</b>) represented as a recursive definition using the overarching trait (<b>Unsigned</b>), and the overarching trait referred to previously which is the <b>Unsigned</b> trait</p>
+	<p> If you missed the comment about the PhantomData part, it's there to keep the compiler quiet about us not giving a damn about the value aspect of the struct, we really really only care about the types used for this tutorial/piece on type programming</p>
+	<p>As for the recursive part, to help us get an idea listed are the first 5 type definitions of unsigned numbers which hopefully should give an insight as to how to form them . The two concepts important here to keep in mind, <b>recursion definion</b> and <b>binary representation of unisgned numbers</b></p>
+
+	<p>Now let's try overloading the Add trait from the standard library for adding either the 0 or 1 bit (at the type level) to an type-level defined unsigned integer. Because type-level function definitions need to be explicit, let's list out what we need to jot down code wise to get this working</p>
+	<ol>
+		<li>Representation for adding B0 to UTerm</li>
+		<li>Representation for adding B1 to UTerm</li>
+		<li>Representation for adding B0 to UInt&ltU,B&gt;</li>
+		<li>Representation for adding B1 to UInt&ltU,B0&gt;</li>
+		<li>Representation for adding B1 to UInt&ltU,B1&gt;</li>
+        </ol>
+	<p>Let's fire away</p>
+	<pre>
+	<code class="rust">
+use std::ops::{Add};
+use std::marker;
+
+// way to collectively refer to bits 0 and 1
+pub trait Bit:Default {}
+
+// bit 0
+#[derive(PartialEq,Debug, Default)]
+pub struct B0;
+impl Bit for B0 {}
+
+
+// bit 1
+#[derive(PartialEq,Debug, Default)]
+pub struct B1;
+impl Bit for B1 {}
+
+// way to collectively refer to 0 and
+pub trait Unsigned:Default {}
+
+#[derive(PartialEq, Debug, Default)]
+pub struct UTerm;
+impl Unsigned for UTerm {}
+
+// the marker bit is to get the compilet to shutup about the on-usage of 
+// the declared generic type variables
+#[derive(PartialEq, Debug, Default)]
+pub struct UInt&lt;U:Unsigned,B:Bit&gt;{
+ _marker: marker::PhantomData&lt;(U,B)&gt;
+}
+impl &lt;U: Unsigned,B: Bit&gt; Unsigned for UInt&lt;U,B&gt;{}
+
+// T
+type U0 = UTerm;
+// T1
+type U1 = UInt&lt;UTerm,B1&gt;;
+// T10
+type U2 = UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;;
+// T11
+type U3 = UInt&lt;UInt&lt;UTerm,B1&gt;,B1&gt;;
+// T100
+type U4 = UInt&lt;UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;,B0&gt;;
+// T101
+type U5 = UInt&lt;UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;,B1&gt;;
+
+impl Add&lt;B0&gt; for UTerm {
+  type Output = UTerm;
+  fn add(self, _:B0) -> Self::Output {
+    UTerm
+  }
+}
+
+impl Add&lt;B1&gt; for UTerm {
+  type Output = UInt&lt;UTerm,B1&gt;;
+  fn add(self, _:B1) -> Self::Output {
+    // don't bother this detail 
+    UInt::default()
+  }
+}
+
+impl &lt;U:Unsigned, B:Bit&gt; Add&lt;B0&gt; for UInt&lt;U,B&gt; {
+   type Output = Self;
+   fn add(self, _:B0) -> Self::Output {
+     self
+   }
+}
+
+impl &ltU:Unsigned&gt; Add&lt;B1&gt; for UInt&lt;U,B0&gt; {
+  type Output = UInt&lt;U,B1&gt;;
+  fn add(self, _:B1) -> Self::Output {
+  // don't bother with this detail
+  UInt::default()
+  }
+}
+
+// All the extra constraints on the types is to 
+// reassure the compiler that the Output type matches the type
+// we're  telling it it should output
+impl &ltU:Unsigned&gt; Add&lt;B1&gt; for UInt&lt;U,B1&gt; 
+  where U: Add&lt;B1&gt;,
+	&lt;U as Add&lt;B1&gt;&gt;::Output: Unsigned 
+	{ 
+	  type Output = UInt&lt;&lt;U as Add&lt;B1&gt;&gt;::Output, B1&gt;;
+	  fn add(self, _:B1) -> Self::Output {
+            // don't bother with this detail
+            UInt::default()
+	  }
+}
+
+	</code>
+	</pre>
+	<p>Of the five items we needed to implement and we did so, the last one stands out a bit with all the extra type constraints? So why, why , why is that we need to provide all these new constraints? can't we do without? </p>
+	<p>The Rust compiler tries to help us with our types always lining up (in order to minimize run-time bugs) but isn't magically able to so. So when we say the output type will be of a certain type in the case <emph>the output of another trait</emph>, we better provide <b>proof that the input type will somehow end up in the output type we've stated in the implementation</b>. This proof happens to be the extra type constraints </p>
+	<p> You could argue, that the compiler should be smart enough to look outisde the scope of the implementation to see that there isn't anything that would not make it so that our input types will not eventually map to our output type. My answer is a guess at this point. This sort of smartness would be a pain to implement and the ensuring this scales without comprising the guarantee on correctness of the program might be impossible, and that local details for correctness and developer incovenience over global details for correctness will guarantee correctness over a much larger number of programs. Again this is a guess</p>
+	<p>So what are the extra type constraints saying here?</p>
+	<p> Remember we're trying to from &ltU:Unsigned&gt; Add&lt;B1&gt; for UInt&lt;U,B1&gt; (our input) to UInt&lt;&lt;U as Add&lt;B1&gt;&gt;::Output, B1&gt;; (our output) <b>Remember UInt requires the it's U input to have the Unsigned trait implemented</b> so it is on us to reassure the compiler that after our "addition" we get something that has the Unsigned trait implemented</p>
+	<p>Back to what the extra type constraints say </p>
+	<ol>
+		<li>U in our input UInt will have the Unisgned trsit implemented</li>
+		<li>U in out input Trait will have the addition to B1 trait implemented</li>
+		<li>The output of the above addition to B1 will have the Unsigned trait implemented</li>
+	</ol>
+	<p>Now with that out of the way, let's write some tests to see our type level functions at play. In addition we'll add two type aliases to make using the type functions easier</p>
+	 	<pre>
+	<code class="rust">
+use std::ops::{Add};
+use std::marker;
+
+// way to collectively refer to bits 0 and 1
+pub trait Bit:Default {}
+
+// bit 0
+#[derive(PartialEq,Debug, Default)]
+pub struct B0;
+impl Bit for B0 {}
+
+
+// bit 1
+#[derive(PartialEq,Debug, Default)]
+pub struct B1;
+impl Bit for B1 {}
+
+// way to collectively refer to 0 and
+pub trait Unsigned:Default {}
+
+#[derive(PartialEq, Debug, Default)]
+pub struct UTerm;
+impl Unsigned for UTerm {}
+
+// the marker bit is to get the compilet to shutup about the on-usage of 
+// the declared generic type variables
+#[derive(PartialEq, Debug, Default)]
+pub struct UInt&lt;U:Unsigned,B:Bit&gt;{
+ _marker: marker::PhantomData&lt;(U,B)&gt;
+}
+impl &lt;U: Unsigned,B: Bit&gt; Unsigned for UInt&lt;U,B&gt;{}
+
+// T
+type U0 = UTerm;
+// T1
+type U1 = UInt&lt;UTerm,B1&gt;;
+// T10
+type U2 = UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;;
+// T11
+type U3 = UInt&lt;UInt&lt;UTerm,B1&gt;,B1&gt;;
+// T100
+type U4 = UInt&lt;UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;,B0&gt;;
+// T101
+type U5 = UInt&lt;UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;,B1&gt;;
+
+impl Add&lt;B0&gt; for UTerm {
+  type Output = UTerm;
+  fn add(self, _:B0) -> Self::Output {
+    UTerm
+  }
+}
+
+impl Add&lt;B1&gt; for UTerm {
+  type Output = UInt&lt;UTerm,B1&gt;;
+  fn add(self, _:B1) -> Self::Output {
+    // don't bother this detail 
+    UInt::default()
+  }
+}
+
+impl &lt;U:Unsigned, B:Bit&gt; Add&lt;B0&gt; for UInt&lt;U,B&gt; {
+   type Output = Self;
+   fn add(self, _:B0) -> Self::Output {
+     self
+   }
+}
+
+impl &ltU:Unsigned&gt; Add&lt;B1&gt; for UInt&lt;U,B0&gt; {
+  type Output = UInt&lt;U,B1&gt;;
+  fn add(self, _:B1) -> Self::Output {
+  // don't bother with this detail
+  UInt::default()
+  }
+}
+
+// All the extra constraints on the types is to 
+// reassure the compiler that the Output type matches the type
+// we're  telling it it should output
+impl &ltU:Unsigned&gt; Add&lt;B1&gt; for UInt&lt;U,B1&gt; 
+  where U: Add&lt;B1&gt;,
+	&lt;U as Add&lt;B1&gt;&gt;::Output: Unsigned 
+	{ 
+	  type Output = UInt&lt;&lt;U as Add&lt;B1&gt;&gt;::Output, B1&gt;;
+	  fn add(self, _:B1) -> Self::Output {
+            // don't bother with this detail
+            UInt::default()
+	  }
+}
+
+type Add0&lt;X&gt; = &lt;X as Add&lt;B0&gt;&gt;::Output;
+type Add1&lt;X&gt; = &lt;X as Add&lt;B1&gt;&gt;::Output;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn addb_test() {
+      let a: Option&lt;U0&gt; = None;
+      let b: Option&lt;Add0&lt;U0&gt;&gt; = None;
+      assert_eq!(a,b);
+
+      let c: Option&lt;U1&gt; = None;
+      let d: Option&lt;Add1&lt;U0&gt;&gt; = None;
+
+      let e: Option&lt;U5&gt; = None;
+      let f: Option&lt;Add1&lt;U4&gt;&gt; = None;
+      assert_eq!(e,f);
+   }
+}
+
+	</code>
+	</pre>
+	<p> Hopefully the tests make sense </p>
         <div id="footer">
             <a href="https://www.brainyquote.com/authors/alfred_north_whitehead" target="_blank">Quotes by an okay chap</a>
         </div>
