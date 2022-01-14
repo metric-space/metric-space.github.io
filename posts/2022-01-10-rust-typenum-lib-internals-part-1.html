@@ -27,20 +27,22 @@
             <div class="info"> Posted on Jan 10, 2022 </div>
             <!-- INTRO -->
             <h4>This post's raison d'etre</h3>
-                <p> I've started programming in Rust. And in order to contribute an open source library that makes heavy usage of type level programming using the <a href=""> Typenum library</a> I've puzzled how the typenum library works.</p>
+                <p> I've started programming in Rust. And in order to contribute an open source library that makes heavy usage of type level programming using the <a href="https://github.com/paholg/typenum" target="_blank"> Typenum library</a> I've puzzled over how the typenum library works.</p>
                 <p>This post is a stab at detailing how I broke down my understanding of the essentials of the Typenum library and also hopes to a stab at be a tutorial at type-level programming in Rust </p>
                 <h3>Warning: While the Typenum library also deals with runtime behaviour, in my regurgitation of the library's code I've only concentrated on the type-level code relevant to compile time behaviour ignoring runtime behaviour</h3>
                 <p>While the code and the idea of type-level programming is beautiful, there is no advanced magic at play here. For a brief glimpse into the simplicity of the code you might want to clone the typenum library and run the commands </p> <pre><code class="bash">cd typenum; cargo build </code></pre><p>, and open up the macro generated content present in the file <u>target/debug/build/type-*/out/consts.rs</u> and you should see a list of generated definition of type level numbers</p>
+		<hr>
+		<p>For each code block given below, I've verfied each one runs( note: the second last block won't run on it's own). Try running each one with <emph>cargo run</emph> after you've made a cargo project</p>
              <!-- HIGH LEVEL  -->
              <h4>High level view of what we're exploring in this post</h4>
-                <p> The Typenum library deals with type integers and the operations on them. Both build on binary representations expressed again at the type level. In this post we're going to go sequentially through the following list </p>
+                <p> The Typenum library deals with type integers and the operations on them. Both build on binary (bit) representations expressed again at the type level. In this post we're going to go sequentially through the following list </p>
              <ol style="list-style-type: decimal">
-                 <li> Bit presentation, NOT and OR operator (<b>all at the type level</b>)</li>
+                 <li> Bit presentation and NOT and OR operator (<b>all at the type level</b>)</li>
                  <li> Unsigned Integer bit representation and Bit addition (<b> all at the type level </b>)</li>
                  <li> Addition of Unsigned Integers (<b> at the type level </b>)</li>
              </ol>
              <!-- (1) -->
-             <h2>Bit presentation, NOT and OR operator</h2>
+             <h2>Bit presentation and NOT and OR operator</h2>
              <pre>
              <code class="rust">
 // empty to trait to be able to refer to the 0 and 1 bit together
@@ -60,7 +62,7 @@ impl Bit for B1 {}
              </code>
              </pre>
 
-             <p> Hopefully the above should be straightforward code. If not, here's a bit explanation: I have two structs that are unified via a common trait called Bit that requires that the structs implementing the trait have defaults trait either implemented or somehow derived  </p>
+             <p> Hopefully the above should be straightforward code. If not, here's a bit of explanation: I have two structs that are unified via a common trait called Bit that requires that the structs implementing the trait have defaults trait either implemented or somehow derived  </p>
              <p>
                  Now comes the first portion of the main meat. The actual type level bit functions namely not and bit-or. If nothing makes sense, solely focus on the associated type of the implemented trait. That carries the result/output of the type level functions
              </p>
@@ -157,7 +159,7 @@ let b: Option<&lt;B1 as Not&gt;>::Output> = None;
              </pre>
              <p>It does work, inspite of the type mumbo-jumbo both a and b are equal even at the type level!!! Don't believe me? try changing B0 in a's definition to B1 and then run the code</p>
              <p>The straight-forward intepretation of the above (type-level code)code is: The associated type of the Not trait implemented by the struct B1 </p>
-             <p>The other interpretation perhaps becomes a bit clear if we introduce a typedef </p>
+             <p>The other interpretation perhaps becomes a bit clear if we introduce a type alias </p>
              <pre>
                  <code class="rust">
 use core::ops::{Not};
@@ -206,7 +208,7 @@ mod tests {
 }
              </code>
              </pre>
-             <p>Hopefully the type(typedef) makes the mapping from associated-type-trait-struct to a function clear</p>
+             <p>Hopefully the type alias makes the mapping from associated-type-trait-struct to a function clear</p>
              <p>Let's try overloading the BitOr standard definition for our Bit representation</p>
              <pre>
                  <code class="rust">
@@ -435,7 +437,7 @@ impl &ltU:Unsigned&gt; Add&lt;B1&gt; for UInt&lt;U,B1&gt;
 
 	</code>
 	</pre>
-	<p>Of the five items we needed to implement and we did so, the last one stands out a bit with all the extra type constraints? So why, why , why is that we need to provide all these new constraints? can't we do without? </p>
+	<p>Of the five items we needed to implement and we did so, the last one stands out a bit with all the extra type constraints. So why, why , why is that we need to provide all these new constraints? can't we do without? </p>
 	<p>The Rust compiler tries to help us with our types always lining up (in order to minimize run-time bugs) but isn't magically able to so. So when we say the output type will be of a certain type in the case <emph>the output of another trait</emph>, we better provide <b>proof that the input type will somehow end up in the output type we've stated in the implementation</b>. This proof happens to be the extra type constraints </p>
 	<p> You could argue, that the compiler should be smart enough to look outisde the scope of the implementation to see that there isn't anything that would not make it so that our input types will not eventually map to our output type. My answer is a guess at this point. This sort of smartness would be a pain to implement and the ensuring this scales without comprising the guarantee on correctness of the program might be impossible, and that local details for correctness and developer incovenience over global details for correctness will guarantee correctness over a much larger number of programs. Again this is a guess</p>
 	<p>So what are the extra type constraints saying here?</p>
