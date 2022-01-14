@@ -447,7 +447,7 @@ impl &ltU:Unsigned&gt; Add&lt;B1&gt; for UInt&lt;U,B1&gt;
 		<li>The output of the above addition to B1 will have the Unsigned trait implemented</li>
 	</ol>
 	<p>Now with that out of the way, let's write some tests to see our type level functions at play. In addition we'll add two type aliases to make using the type functions easier</p>
-	 	<pre>
+	<pre>
 	<code class="rust">
 use std::ops::{Add};
 use std::marker;
@@ -562,6 +562,410 @@ mod tests {
 	</code>
 	</pre>
 	<p> Hopefully the tests make sense </p>
+	<p> now moving on to the last bit of this write-up </p> 
+	<h2> Addition of Unsigned Integers at the type level</h2>
+	<p> Let's see what needs to be implmented to get this going </p>
+	<ol>
+		<li>Representation for adding UTerm to UTerm </li>
+		<li>Representation for adding UInt&lt;U,B&gt; to UTerm</li>
+		<li>Representation for adding UTerm to UInt&lt;U,B&gt;</li>
+		<li>Representation for adding UInt&lt;U1,B0&gt; to UInt&lt;U2,B0&gt; (here UI and U2 represent two different Unsigned integers) - <b>A</b></li>
+		<li>Representation for adding UInt&lt;U1,B0&gt; to UInt&lt;U2,B1&gt; (here UI and U2 represent two different Unsigned integers) - <b>B</b></li>
+		<li>Representation for adding UInt&lt;U1,B1&gt; to UInt&lt;U2,B0&gt; (here UI and U2 represent two different Unsigned integers) - <b>C</b></li>
+		<li>Representation for adding UInt&lt;U1,B1&gt; to UInt&lt;U2,B1&gt; </li>
+	</ol>
+	<p> Let's get into it</p>
+	<pre>
+	<code class="rust">
+use std::ops::{Add};
+use std::marker;
+
+// way to collectively refer to bits 0 and 1
+pub trait Bit:Default {}
+
+// bit 0
+#[derive(PartialEq,Debug, Default)]
+pub struct B0;
+impl Bit for B0 {}
+
+
+// bit 1
+#[derive(PartialEq,Debug, Default)]
+pub struct B1;
+impl Bit for B1 {}
+
+// way to collectively refer to 0 and
+pub trait Unsigned:Default {}
+
+#[derive(PartialEq, Debug, Default)]
+pub struct UTerm;
+impl Unsigned for UTerm {}
+
+// the marker bit is to get the compilet to shutup about the on-usage of 
+// the declared generic type variables
+#[derive(PartialEq, Debug, Default)]
+pub struct UInt&lt;U:Unsigned,B:Bit&gt;{
+ _marker: marker::PhantomData&lt;(U,B)&gt;
+}
+impl &lt;U: Unsigned,B: Bit&gt; Unsigned for UInt&lt;U,B&gt;{}
+
+// T
+type U0 = UTerm;
+// T1
+type U1 = UInt&lt;UTerm,B1&gt;;
+// T10
+type U2 = UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;;
+// T11
+type U3 = UInt&lt;UInt&lt;UTerm,B1&gt;,B1&gt;;
+// T100
+type U4 = UInt&lt;UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;,B0&gt;;
+// T101
+type U5 = UInt&lt;UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;,B1&gt;;
+
+impl Add&lt;B0&gt; for UTerm {
+  type Output = UTerm;
+  fn add(self, _:B0) -> Self::Output {
+    UTerm
+  }
+}
+
+impl Add&lt;B1&gt; for UTerm {
+  type Output = UInt&lt;UTerm,B1&gt;;
+  fn add(self, _:B1) -> Self::Output {
+    // don't bother this detail 
+    UInt::default()
+  }
+}
+
+impl &lt;U:Unsigned, B:Bit&gt; Add&lt;B0&gt; for UInt&lt;U,B&gt; {
+   type Output = Self;
+   fn add(self, _:B0) -> Self::Output {
+     self
+   }
+}
+
+impl &ltU:Unsigned&gt; Add&lt;B1&gt; for UInt&lt;U,B0&gt; {
+  type Output = UInt&lt;U,B1&gt;;
+  fn add(self, _:B1) -> Self::Output {
+  // don't bother with this detail
+  UInt::default()
+  }
+}
+
+// All the extra constraints on the types is to 
+// reassure the compiler that the Output type matches the type
+// we're  telling it it should output
+impl &ltU:Unsigned&gt; Add&lt;B1&gt; for UInt&lt;U,B1&gt; 
+  where U: Add&lt;B1&gt;,
+	&lt;U as Add&lt;B1&gt;&gt;::Output: Unsigned 
+	{ 
+	  type Output = UInt&lt;&lt;U as Add&lt;B1&gt;&gt;::Output, B1&gt;;
+	  fn add(self, _:B1) -> Self::Output {
+            // don't bother with this detail
+            UInt::default()
+	  }
+}
+
+type Add0&lt;X&gt; = &lt;X as Add&lt;B0&gt;&gt;::Output;
+type Add1&lt;X&gt; = &lt;X as Add&lt;B1&gt;&gt;::Output;
+
+//============== New Code starts here  ==================================
+
+// could technically skip the triangular parens here and it's content i.E UTerm
+impl Add&lt;UTerm&gt; for UTerm {
+    type Output = UTerm;
+    fn add(self, _:UTerm) -> Self::Output {
+      UTerm
+    }
+}
+
+impl &lt;U:Unsigned, B:Bit&gt; Add&lt;UInt&lt;U,B&gt;&gt; for UTerm {
+   type Output = UInt&lt;U,B&gt;;
+   fn add(self, x:Self::Output) -> Self::Output {
+     x
+   }
+}
+
+
+impl &lt;U:Unsigned, B:Bit&gt; Add&ltUTerm&gt; for UInt&lt;U,B&gt {
+   type Output = UInt&lt;U,B&gt;;
+   fn add(self, _:UTerm) -> Self::Output {
+     self
+   }
+}
+
+// type aliasing to make things easier for us from here
+type BAdd&lt;X,Y&gt; = &lt;Y as Add&lt;X&gt;&gt;::Output;
+
+
+// cases (A) and (B)
+impl &lt;U1:Unsigned, U2:Unsigned, B:Bit&gt; Add&lt;UInt&lt;U1,B0&gt;&gt; for UInt&lt;U2,B&gt; 
+  where U2:Add&ltU1&gt,
+        BAdd&lt;U1,U2&gt;: Unsigned
+{
+  type Output = UInt&lt;BAdd&lt;U1,U2&gt;,B&gt;;
+  fn add(self, _: UInt&lt;U1,B0&gt;) -> Self::Output {
+   // don't bother about this detail 
+   UInt::default() 
+  }
+} 
+
+
+// case (C) tackled here
+impl &lt;U1:Unsigned, U2:Unsigned&gt; Add&lt;UInt&lt;U1,B1&gt;&gt; for UInt&lt;U2,B0&gt; 
+  where U2:Add&ltU1&gt,
+        BAdd&lt;U1,U2&gt;: Unsigned
+{
+  type Output = UInt&lt;BAdd&lt;U1,U2&gt;,B1&gt;;
+  fn add(self, _: UInt&lt;U1,B1&gt;) -> Self::Output {
+   // don't bother about this detail 
+   UInt::default() 
+  }
+}
+
+
+//WARNING: we've made a mistake in the type constraints here, can you spot the mistake?
+impl &lt;U1:Unsigned, U2:Unsigned&gt; Add&lt;UInt&lt;U1,B1&gt;&gt; for UInt&lt;U2,B1&gt; 
+  where U2:Add&ltU1&gt,
+        BAdd&lt;U1,U2&gt;: Unsigned
+{
+  type Output = UInt&lt;Add1&ltBAdd&lt;U1,U2&gt;&gt;,B0&gt;;
+  fn add(self, _: UInt&lt;U1,B1&gt;) -> Self::Output {
+   // don't bother about this detail 
+   UInt::default() 
+  }
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn addb_test() {
+      let a: Option&lt;U0&gt; = None;
+      let b: Option&lt;Add0&lt;U0&gt;&gt; = None;
+      assert_eq!(a,b);
+
+      let c: Option&lt;U1&gt; = None;
+      let d: Option&lt;Add1&lt;U0&gt;&gt; = None;
+
+      let e: Option&lt;U5&gt; = None;
+      let f: Option&lt;Add1&lt;U4&gt;&gt; = None;
+      assert_eq!(e,f);
+   }
+}
+
+	</code>
+	</pre>
+
+	<p>If you try running the above code, the last Add implementation will throw out errors because we did not get the type constraints right, let's understand why </p>
+	<p>We have to guarantee that Add1&ltBAdd&lt;U1,U2&gt;&gt; in UInt&lt;Add1&ltBAdd&lt;U1,U2&gt;&gt;,B0&gt; is an Unsigned type</p> <p>BUT our constraints fall short, our current type constraints i.e U2:Add&ltU1&gt, BAdd&lt;U1,U2&gt;: Unsigned stop short at saying BAdd's output will implement the Unsigned trait and not the output of Add1&ltBAdd&lt;U1,U2&gt;&gt; </p>
+	<p>We need to modify our last constraint and add in a new one as so</p>
+	<pre>
+	<code class="rust">
+impl &lt;U1:Unsigned, U2:Unsigned&gt; Add&lt;UInt&lt;U1,B1&gt;&gt; for UInt&lt;U2,B1&gt; 
+  where U2:Add&ltU1&gt,
+	BAdd&lt;U1,U2&gt;: Add&lt;B1&gt;,
+	Add1&lt;BAdd&lt;U1,U2&gt;&gt;:Unsigned
+{
+  type Output = UInt&lt;Add1&ltBAdd&lt;U1,U2&gt;&gt;,B0&gt;;
+  fn add(self, _: UInt&lt;U1,B1&gt;) -> Self::Output {
+   // don't bother about this detail 
+   UInt::default() 
+  }
+}
+	</code>
+	</pre>
+	<p> And new we add tests to finish off </p>
+	 <pre>
+	<code class="rust">
+use std::ops::{Add};
+use std::marker;
+
+// way to collectively refer to bits 0 and 1
+pub trait Bit:Default {}
+
+// bit 0
+#[derive(PartialEq,Debug, Default)]
+pub struct B0;
+impl Bit for B0 {}
+
+
+// bit 1
+#[derive(PartialEq,Debug, Default)]
+pub struct B1;
+impl Bit for B1 {}
+
+// way to collectively refer to 0 and
+pub trait Unsigned:Default {}
+
+#[derive(PartialEq, Debug, Default)]
+pub struct UTerm;
+impl Unsigned for UTerm {}
+
+// the marker bit is to get the compilet to shutup about the on-usage of 
+// the declared generic type variables
+#[derive(PartialEq, Debug, Default)]
+pub struct UInt&lt;U:Unsigned,B:Bit&gt;{
+ _marker: marker::PhantomData&lt;(U,B)&gt;
+}
+impl &lt;U: Unsigned,B: Bit&gt; Unsigned for UInt&lt;U,B&gt;{}
+
+// T
+type U0 = UTerm;
+// T1
+type U1 = UInt&lt;UTerm,B1&gt;;
+// T10
+type U2 = UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;;
+// T11
+type U3 = UInt&lt;UInt&lt;UTerm,B1&gt;,B1&gt;;
+// T100
+type U4 = UInt&lt;UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;,B0&gt;;
+// T101
+type U5 = UInt&lt;UInt&lt;UInt&lt;UTerm,B1&gt;,B0&gt;,B1&gt;;
+
+impl Add&lt;B0&gt; for UTerm {
+  type Output = UTerm;
+  fn add(self, _:B0) -> Self::Output {
+    UTerm
+  }
+}
+
+impl Add&lt;B1&gt; for UTerm {
+  type Output = UInt&lt;UTerm,B1&gt;;
+  fn add(self, _:B1) -> Self::Output {
+    // don't bother this detail 
+    UInt::default()
+  }
+}
+
+impl &lt;U:Unsigned, B:Bit&gt; Add&lt;B0&gt; for UInt&lt;U,B&gt; {
+   type Output = Self;
+   fn add(self, _:B0) -> Self::Output {
+     self
+   }
+}
+
+impl &ltU:Unsigned&gt; Add&lt;B1&gt; for UInt&lt;U,B0&gt; {
+  type Output = UInt&lt;U,B1&gt;;
+  fn add(self, _:B1) -> Self::Output {
+  // don't bother with this detail
+  UInt::default()
+  }
+}
+
+// All the extra constraints on the types is to 
+// reassure the compiler that the Output type matches the type
+// we're  telling it it should output
+impl &ltU:Unsigned&gt; Add&lt;B1&gt; for UInt&lt;U,B1&gt; 
+  where U: Add&lt;B1&gt;,
+	&lt;U as Add&lt;B1&gt;&gt;::Output: Unsigned 
+	{ 
+	  type Output = UInt&lt;&lt;U as Add&lt;B1&gt;&gt;::Output, B1&gt;;
+	  fn add(self, _:B1) -> Self::Output {
+            // don't bother with this detail
+            UInt::default()
+	  }
+}
+
+type Add0&lt;X&gt; = &lt;X as Add&lt;B0&gt;&gt;::Output;
+type Add1&lt;X&gt; = &lt;X as Add&lt;B1&gt;&gt;::Output;
+
+//============== New Code starts here  ==================================
+
+// could technically skip the triangular parens here and it's content i.E UTerm
+impl Add&lt;UTerm&gt; for UTerm {
+    type Output = UTerm;
+    fn add(self, _:UTerm) -> Self::Output {
+      UTerm
+    }
+}
+
+impl &lt;U:Unsigned, B:Bit&gt; Add&lt;UInt&lt;U,B&gt;&gt; for UTerm {
+   type Output = UInt&lt;U,B&gt;;
+   fn add(self, x:Self::Output) -> Self::Output {
+     x
+   }
+}
+
+
+impl &lt;U:Unsigned, B:Bit&gt; Add&ltUTerm&gt; for UInt&lt;U,B&gt {
+   type Output = UInt&lt;U,B&gt;;
+   fn add(self, _:UTerm) -> Self::Output {
+     self
+   }
+}
+
+// type aliasing to make things easier for us from here
+type BAdd&lt;X,Y&gt; = &lt;Y as Add&lt;X&gt;&gt;::Output;
+
+
+// cases (A) and (B)
+impl &lt;U1:Unsigned, U2:Unsigned, B:Bit&gt; Add&lt;UInt&lt;U1,B0&gt;&gt; for UInt&lt;U2,B&gt; 
+  where U2:Add&ltU1&gt,
+        BAdd&lt;U1,U2&gt;: Unsigned
+{
+  type Output = UInt&lt;BAdd&lt;U1,U2&gt;,B&gt;;
+  fn add(self, _: UInt&lt;U1,B0&gt;) -> Self::Output {
+   // don't bother about this detail 
+   UInt::default() 
+  }
+} 
+
+
+// case (C) tackled here
+impl &lt;U1:Unsigned, U2:Unsigned&gt; Add&lt;UInt&lt;U1,B1&gt;&gt; for UInt&lt;U2,B0&gt; 
+  where U2:Add&ltU1&gt,
+        BAdd&lt;U1,U2&gt;: Unsigned
+{
+  type Output = UInt&lt;BAdd&lt;U1,U2&gt;,B1&gt;;
+  fn add(self, _: UInt&lt;U1,B1&gt;) -> Self::Output {
+   // don't bother about this detail 
+   UInt::default() 
+  }
+}
+
+
+impl &lt;U1:Unsigned, U2:Unsigned&gt; Add&lt;UInt&lt;U1,B1&gt;&gt; for UInt&lt;U2,B1&gt; 
+  where U2:Add&ltU1&gt,
+	BAdd&lt;U1,U2&gt;: Add&lt;B1&gt;,
+	Add1&lt;BAdd&lt;U1,U2&gt;&gt;:Unsigned
+{
+  type Output = UInt&lt;Add1&ltBAdd&lt;U1,U2&gt;&gt;,B0&gt;;
+  fn add(self, _: UInt&lt;U1,B1&gt;) -> Self::Output {
+   // don't bother about this detail 
+   UInt::default() 
+  }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn addb_test() {
+      let a: Option&lt;U2&gt; = None;
+      let b: Option&lt;BAdd&lt;U2,U0&gt;&gt; = None;
+      let c: Option&lt;BAdd&lt;U0,U2&gt;&gt; = None;
+      assert_eq!(a,b);
+      assert_eq!(a,c);
+
+      let d: Option&lt;U4&gt; = None;
+      let e: Option&lt;BAdd&lt;U2,U2&gt;&gt; = None;
+      assert_eq!(d,e);
+
+      let g: Option&lt;U5&gt; = None;
+      let h: Option&lt;BAdd&lt;U3,U2&gt;&gt; = None;
+      let i: Option&lt;BAdd&lt;U2,U3&gt;&gt; = None;
+      assert_eq!(g,h);
+      assert_eq!(g,i);
+   }
+}
+
+	</code>
+	</pre>
+	<p>I hope that all of this made some sense and that you the reader got something out of it. I do hope to make a part 2 and part 3 for this series, so hope you read those as well. Thank you</p>
         <div id="footer">
             <a href="https://www.brainyquote.com/authors/alfred_north_whitehead" target="_blank">Quotes by an okay chap</a>
         </div>
