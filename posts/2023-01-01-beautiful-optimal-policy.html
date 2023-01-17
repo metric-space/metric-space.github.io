@@ -23,48 +23,42 @@
         </div>
 
         <div id="content">
-          <p>There is this problem (Ex. 4.8) in the book <b><a href="http://www.incompleteideas.net/book/the-book-2nd.html" target="_blank"> Reinforcement Learning (by Richard S. Sutton and Andrew G. Barton)</a></b> that shows you this graph that depicts an optimal policy (left figure. In the right is depicted the chances of reaching the goal from the current state)</p>
           <div>
-          <img src="../images/optimal_policy.png"></img><img src="../images/value_estimation.png"></img>
+            <h3>The problem</h3>
+            <p>(This problem is Ex. 4.8 in the book <b><a href="http://www.incompleteideas.net/book/the-book-2nd.html" target="_blank"> Reinforcement Learning (by Richard S. Sutton and Andrew G. Barton))</a></b></p>
+            <p>You have a certain amount &lt; 100 dollars with you. On multiple coin tosses, for a single coin toss you can stake an amount to reach the goal of 100 dollars. Heads you win the amount you stake and tails you loose the amount you stake. Game ends when you hit 0 dollars. <b> The probability of a heads is 0.4 </b>.</p><p>You are given an optimal plan of action (graph below) for any start value to reach a 100 and are asked</p>
+            <img src="../images/optimal_policy.png"></img>
+            <h3>Why does the optimal policy have a curious form?</h3>
           </div>
-          <p>The problem states that this is a <b>non-unique</b> optimal policy. It asks why does it have a curious form? and what makes it a good policy?</p>
           <hr/>
           <div>
-            <h4> A more deeper background</h4>
-            <div>
-              <h3>The problem</h3>
-              <p>You have a certain amount &lt; 100 dollars with you. On multiple coin tosses, for a single coin toss you can stake an amount to reach the goal of 100 dollars. Heads you win the amount you stake and tails you loose the amount you stake. Game ends when you hit 0 dollars and <b> the probability of a heads is 0.4 </b>. What is an optimal plan of action for any start value to reach a 100 </p>
-              <p> Note: in the literature preceding the actual question, the actions are limited to staking amounts in the range of <b>0</b> to <b>min(s, 100-s)</b> where <b>s</b> is you current amount. (<b> THIS IS IMPORTANT </b>)</p>
-              <p> For example, if you have 70 dollars on hand, theoretically you can stake any amount from 0 dollars to 30 dollars (as per the above rule) </p>
-            </div>
-            <div>
-              <h3>Definitions </h3>
-              <ul>
-                <li><b>Policy</b>: a function that given your current state gives out an action to take you to the next state (this can be deterministic or stochastic. For this problem, this is deterministic in nature) </li>
-              </ul>
-            </div>
+            <h4> Notes: </h4>
+            <ol>
+              <li>
+                <div>
+                  <p> In the literature preceding the actual question, the actions are limited to staking amounts in the range of <b>0</b> to <b>min(s, 100-s)</b> where <b>s</b> is your current amount. (<b> THIS IS IMPORTANT </b>)</p>
+                  <p> For example, if you have 70 dollars on hand, theoretically you can stake any amount from 0 dollars to 30 dollars (as per the above rule) </p>
+                </div>
+              </li>
+              <li>
+                <figure>
+                  <img src="../images/value_estimation.png"></img>
+                  <figcaption> A graph depicting the odds of getting to the goal from your current state</figcaption>
+                </figure>
+              </li>
+              <li>
+                <div>
+                  <p>Definition of a <b>Policy</b>:<p>
+                  <p>A  function that given your current state gives out an action to take you to the next state (this can be deterministic or stochastic. For this problem, this is deterministic in nature) </p>
+                </div>
+              </li>
+            </ol>
+          </div>
             <hr/>
             <h3>A look at how bad 0.4 chance of heads is in terms of winning</h3>
             <p> To get a sense of how bad things are in terms of winning, we plot the number of wins per thousand games for various starting amounts for three different types of coin toss distributions </p>
-            <p>The strategy used here is one where we go all in, all the time. I choose to take this as my baseline in the constrast against the optimal policy</p>
+            <p>The strategy used here is one where we go all in, all the time. I choose to take this as my baseline in the constrast against the optimal policy (shown later on)</p>
             <image src="../images/baseline.png"></image>
-            <h3>Optimal policy vs baseline</h3>
-            <image src="../images/baseline_vs_optimal.png"></image>
-            <hr/>
-            <h3> The x,y values presented in the graph of the optimal policy </h3>
-            <pre>
-               [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8), (9, 9), (10, 10), (11, 11), (12, 12),
-               (13, 12), (14, 11), (15, 10), (16, 9), (17, 8), (18, 7), (19, 6), (20, 5), (21, 4), (22, 3), (23, 2), (24, 1),
-               (25, 25),
-               (26, 1), (27, 2), (28, 3), (29, 4), (30, 5), (31, 6), (32, 7), (33, 8), (34, 9), (35, 10), (36, 11), (37, 12),
-               (38, 12), (39, 11), (40, 10), (41, 9), (42, 8), (43, 7), (44, 6), (45, 5), (46, 4), (47, 3), (48, 2), (49, 1),
-               (50, 50),
-               (51, 1), (52, 2), (53, 3), (54, 4), (55, 5), (56, 6), (57, 7), (58, 8), (59, 9), (60, 10), (61, 11), (62, 12),
-               (63, 12), (64, 11), (65, 10), (66, 9), (67, 8), (68, 7), (69, 6), (70, 5), (71, 4), (72, 3), (73, 2), (74, 1),
-               (75, 25),
-               (76, 1), (77, 2), (78, 3), (79, 4), (80, 5), (81, 6), (82, 7), (83, 8), (84, 9), (85, 10), (86, 11), (87, 12),
-               (88, 12), (89, 11), (90, 10), (91, 9), (92, 8), (93, 7), (94, 6), (95, 5), (96, 4), (97, 3), (98, 2), (99, 1)]
-            </pre>
             <hr/>
             <h3> Some thoughts on a possible optimal solution </h3>
             <ul>
@@ -76,6 +70,7 @@
               <li> You'd want to make sure that every state that cannot possibly reach the goal in one sweep somehow gets closer to the sweet/jump spots on win or lose </li>
             </ul>
             <h4> How the above points translate to the optimal policy in question </h4>
+            <p> Refer to <a href="#footnotes">[1]</a> for actual points</p>
             <quote>
                <i>you'd want to concentrate your sweet spots to a few places where you drive in a winning shot in one go OR if not that be a jump spot to a winning spot</i>
             </quote>
@@ -103,9 +98,35 @@
             <p><b>If the actions were permissive of over-reaching the goal i.e getting an amount of more than 100, the policy would look different</b></p>
           </div>
           <hr/>
-          <h3>So, what makes this a good solution and in my opinion a beautiful solution? </h3>
-          <p>The way the policy manages loss to provide wins is nothing short of amazing :) </p>
+          <h3> Closing thoughts </h3>
+          <p> Here's a graph that shows us how the optimal policyfares against the baseline which serves as evidence that it is a good solution. </p>
+          <figure>
+            <image src="../images/baseline_vs_optimal.png"></image>
+          </figure>
+
+          <p> We've established why the optimal policy has a curious form. One so symmetric and beautiful. The thing of beauty is how the policy manages loss to provide wins. </p>
         </div>
+        <hr/>
+        <div id="footnotes">
+          <h4>Footnotes</h4>
+          <p>[1] Optimum policy state-action (x,y) pairs</p>
+          <pre>
+              [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8), (9, 9), (10, 10), (11, 11), (12, 12),
+              (13, 12), (14, 11), (15, 10), (16, 9), (17, 8), (18, 7), (19, 6), (20, 5), (21, 4), (22, 3), (23, 2), (24, 1),
+              (25, 25),
+              (26, 1), (27, 2), (28, 3), (29, 4), (30, 5), (31, 6), (32, 7), (33, 8), (34, 9), (35, 10), (36, 11), (37, 12),
+              (38, 12), (39, 11), (40, 10), (41, 9), (42, 8), (43, 7), (44, 6), (45, 5), (46, 4), (47, 3), (48, 2), (49, 1),
+              (50, 50),
+              (51, 1), (52, 2), (53, 3), (54, 4), (55, 5), (56, 6), (57, 7), (58, 8), (59, 9), (60, 10), (61, 11), (62, 12),
+              (63, 12), (64, 11), (65, 10), (66, 9), (67, 8), (68, 7), (69, 6), (70, 5), (71, 4), (72, 3), (73, 2), (74, 1),
+              (75, 25),
+              (76, 1), (77, 2), (78, 3), (79, 4), (80, 5), (81, 6), (82, 7), (83, 8), (84, 9), (85, 10), (86, 11), (87, 12),
+              (88, 12), (89, 11), (90, 10), (91, 9), (92, 8), (93, 7), (94, 6), (95, 5), (96, 4), (97, 3), (98, 2), (99, 1)]
+          </pre>
+        </div>
+        <hr/>
+        <h4> Acknowledgements </h4>
+        <p> Special thanks to Spencer for intensive feedback on structure and content of this blog post</p>
         <div id="footer">
             <a href="https://www.brainyquote.com/authors/alfred_north_whitehead" target="_blank">Quotes by an okay chap</a>
         </div>
