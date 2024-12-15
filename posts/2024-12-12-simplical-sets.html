@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Metric Space - Simplex News: Face maps, Degenerate operators and Cat theory: Read all about it</title>
+        <link rel="stylesheet" href="../css/default.css" />
+        <link rel="stylesheet" href="../js/highlight/styles/nord.css">
+        <script src="../js/highlight/highlight.pack.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script>
+        <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Metric-Space</a>
+            </div>
+            <div id="navigation">
+                <a href="../index.html">Back</a>
+            </div>
+        </div>
+
+        <h1> Work in Progressed ... Work in Progress !!!!</h1>
+
+        <div id="content">
+            <div>
+                <h3> Table of Contents </h3>
+                <ul>
+                    <li><a href="#foreword">Foreword</a></li>
+                    <li><a href="#simplex">Simplex</a></li>
+                    <li><a href="#simplical-complexes">Simplical Complexes</a></li>
+                    <li><a href="#abstract-simplical-complex">Abstract Simplical Complex</a></li>
+                    <li><a href="#ordered-simplical-sets">Ordered Simplical sets</a></li>
+                    <li><a href="#simplical-set-operators">Face and Degeneracy Operators: Why and What</a></li>
+                    <li><a href="#category-theory">Category Theory Basics</a></li>
+                    <li><a href="#cat-formulation"></a>Category Theory formulation of Simplical Sets</li>
+                    <li><a href="#references">References</a></li>
+                </ul>
+            </div>
+            <hr/>
+            <div> 
+                <h3 id="foreword"> Foreword </h3>
+                <p> I've dealt with a watered down version of <strong>Category theory</strong> in the form of <strong>Haskell</strong> and never really in all of it's (category theory) glory. </p>
+                <p> All that (somewhat) changed ... WHEN THE (metaphorical) FIRE NATION ATTACKED </p>
+                <p> While going down the rabbit hole of the mathematics behind <a href="https://arxiv.org/pdf/1802.03426">UMAP (Uniform Manifold approximation and projection for dimensional reduction)</a> I came across the concept of a <strong>Simplical Set</strong> and was puzzled as to why it is a <strong>contravariant functor </strong> and not just a <strong>plain old covariant functor</strong></p> </div>
+                <p> Most of what are discussed are parts of <strong>Algebraic topology</strong> (formly called Combinatorial topology) </p>
+                <p> While I hoped there is a linear route to understanding things deeply, I think </p>
+            <hr/>
+            <!-- ================================================================== -->
+            <!-- =======                  Warning                             ===== -->
+            <!-- ================================================================== -->
+            <h3> Alert! </h3>
+            <p> The <strong>Combinatorial</strong> in Combinatorial topology <u>typically</u> refers to the discrete structure of the objects studied, rather than specifically to <q>sets of combinations</q> </p>
+            <hr/>
+            <!-- ================================================================== -->
+            <!-- =======                  Warning                             ===== -->
+            <!-- ================================================================== -->
+            <h3> Why would any one care about the Simplicial Fraternity or Combinatorial topology? </h3>
+            <p> By Simplicial Fraternity I mean the collection of objects that are related to simplices i.e. Simplices, Simplicial complexes, Abstract Simplicial Complexes and Simplicial Sets </p>
+            <p> Introducing the  <strong>Simplical Approximation Theorem </strong>: </p>
+            <blockquote> 
+                Let \( \mathrm{K}, \mathrm{L} \) be simplicial complexes. 
+                A simplicial mapping \( f: \mathrm{K} \rightarrow \mathrm{L} \) is called a simpicial approximation of a confinuous function \( F: |\mathrm{K}| \rightarrow |\mathrm{L}| \) if for every point \( x \in |\mathrm{K}|, |f|(x) \) is in the minimal closed simplex of L containing the point \( \mathrm{F}(x)\)
+
+            </blockquote>
+            (The above was nicked from wikipedia)
+
+            To go a bit deeper:
+
+
+
+
+
+
+
+            <!-- ================================================================== -->
+            <!-- =======                  Simplex                             ===== -->
+            <!-- ================================================================== -->
+            <h3>Simplex</h3>
+
+            <p> I like the definition given in the book <q>Topology by Klaus Janich</q> because among other things it emphasizes the concept of the general position</p>
+
+            <p> By a k-dimensional simplex or k-simplex in \( \mathrm{R}^n \) we mean the convex hull \( s(v_o,\ldots, v_k) \) of k + 1 points in the general position </p>
+
+            <p> By convex hull of points \(v_0,\ldots,v_k\) we mean \( \bigl\{ \sum_0^k \lambda_i v_i | \lambda_0 + \lambda_1 + \ldots + \lambda_k = 1 \bigr\} \) </p>
+
+            <p>  and by <q>general position</q> we mean \( v_1 - v_0, \ldots, v_k - v_0  \) are linearly independent </p>
+
+            <hr/>
+            <!-- ================================================================== -->
+            <!-- =======                  Simplical Complexes                      ===== -->
+            <!-- ================================================================== -->
+
+            <h3 id="simplical-complexes">Simplical Complexes</h3>
+
+            <p>A simplicial complex \(\mathrm{X}\) <u>in \(\mathbb{R}^n \)</u> is a set of simplices in \(\mathbb{R}^n \) such that:   </p>
+            <ul>
+                <li> Every face of a simplex in \(\mathrm{X}\) is also in \(\mathrm{X}\) </li>
+                <li> The intersection of any two simplices in \(\mathrm{X}\) is either empty or a common face of both simplices </li>
+            </ul>
+
+            <p> Sometimes the grander vision of the above listed points gets lost and in the book <q>Topology by Klaus Janich</q> the author draws a diagram that describe what the above rules makes impossible </p>
+
+
+            <figure>
+                <img src="../images/intersection.png" height="300px" width="300px" alt="Simplical Complex" />
+                <figcaption> Invalid Simplicial Complex </figcaption>
+            </figure>
+
+            <p> Here's an example of an  Simplical Complex <p>
+
+            <blockquote>
+
+                A circle can be given the structure of a simplical complex (up to homeomorphism) in \( \mathbb{R}^n \)  where the 0-simplices (vertices) are (0,0), (0,1) and (1,1) and the equations that determine the 1-simplices are \( 0x + y = 1, x + 0y = 1, x + y = 1 \) where \( x,y \in [0,1] \)
+
+            </blockquote>
+
+            <p> A secondary reason for bringing this up is to give you a sense of how cumbersome things can get when writing to write equations to approximate something like a torus in  </p>
+
+            <hr/>
+            <!-- ================================================================== -->
+            <!-- =======                  Abstract Simplical Complex          ===== -->
+            <!-- ================================================================== -->
+            <h3 id="abstract-simplical-complex">Abstract Simplical Complex</h3>
+
+            <p> Continuing from above, it is reasonable to think that working with simplicial complexes one while in the course of determining simplices, ensuring that these simplices intersect properly (in accordance with the rules stated above) requires solving equation and hence burdensome </p>
+
+            <p> The cure? : more abstraction </p>
+
+            <p> For the purpose of (come back here), what is (deemed) important is the count of the simplices there are and which faces they are glued along. <u> This is what we call combinatorial (discrete) information </u> </p>
+
+            <p> <u> To sum up the sentiment succintly: It is often easier to construct a complex abstractly and to worry abut how to put it into Euclidean space later. </u> </p>
+
+            <p></p>
+            <p>Before we go on to a proper definition, we need to establish the concept of a k-skeleton</p>
+
+            <p> <strong> The k-skeleton of a simplicial complex </strong> is the collection of all simplices of dimension at most k and is denoted by \( X^k \) </p>
+
+            <p> The definition of an abstract simplicial complex is as follows: (nicked from <a href="https://arxiv.org/pdf/0809.4221">Greg Friedman's paper on Simplicial Sets)</a></p>
+
+            <blockquote>
+                <strong>Definition 2.2. </strong> An abstract simplicial complex consists of a set of “vertices” \(\mathbf{X}^0\) together with, for each integer k, a set \(\mathbf{X}^k\)  consisting of subsets of \(\mathbf{X}^0\) of cardinality k + 1. These must satisfy the condition that any (j + 1)-element subset of an element of \(\mathbf{X}^k\) is an element
+of \(\mathbf{X}^j\) .
+
+            </blockquote>
+
+            <p> An example of this: consider a Simplicial Complex that resembles an octahedron that is supposed to approximate a sphere ( \(\mathbb{S}^2\)) </p>
+
+            <p> The Abstract Simplicial Complex (representation) would be something like this </p>
+
+            <p> Vertices : \( \{v_0, v_1, v_2, v_3, v_4, v_5\} \)  </p>
+
+            <p> In terms of k-Skeletons: </p>
+            <blockquote> 
+                \( X^0 =  \{\{v_0\}, \{v_1\}, \{v_2\}, \{v_3\}, \{v_4\}, \{v_5\}\} \) , 
+                \( X^1 = \{ \{v_0, v_1\}, \{v_0, v_2\}, \{v_0, v_3\}, \{v_0, v_4\}, \{v_5, v_1\}, \{v_5, v_2\}, \{v_5, v_3\}, \{v_5, v_4\}, \{v_1, v_2\}, \{v_2, v_3\}, \{v_3, v_4\}, \{v_4, v_1\} \} \) ,
+                \( X^2 = \{ \{v_1,v_5,v_4\}, \{ v_1, v_5, v_2\}, \{ v_2, v_5, v_3\}, \{ v_3, v_5, v_4\}, \{v_1, v_0, v_2\}, \{ v_2, v_0, v_3\}, \{v_3, v_0, v_4\}, \{v_4, v_0, v_1\} \} \)
+            </blockquote>
+            All in all: \( X = X^0 \cup X^1 \cup X^2 \)
+
+            <hr/>
+            <!-- ================================================================== -->
+            <!-- =======                  Ordered-Simplical sets                      ===== -->
+            <!-- ================================================================== -->
+            <h3 id="ordered-simplical-sets">Ordered Simplical sets</h3>
+
+            <p>The point of all of this i.e Simplex, Simplicial Complexes and Abstract Simplicial Complexes is to approximate a topological space </p>
+
+            <p> The stuff covered so far do a good job but we're not quite there yet. We now look at product operations on simplicial complexes </p>
+
+            <h4> Brief bit on the Universal property of Products. (<u>Side:</u>at the moment I haven't thought about why this is even as thing or even True) </h4>
+
+            <p> The following is a diagram  from <a href="https://www.amazon.ca/Algebra-Chapter-0-Paolo-Aluffi/dp/0821847813">Algebra: Chapter 0</a> that slighly to modified to match that of [insert paper] </p>
+
+            <figure>
+                <img src="../images/product_diagram.png" height="300px" alt="Commutative diagram of Products" />
+                <figcaption> Commutative diagram of Products </figcaption>
+            </figure>
+
+            <p> By commutative diagram we mean as long you start from any node (Letters here) and as long as you follow the arrows, you should get the same answer regardless of path followed</p>
+
+
+
+
+
+
+
+            <hr/>
+            <!-- ================================================================== -->
+            <!-- =======                  Simplical sets                      ===== -->
+            <!-- ================================================================== -->
+            <h3 id="simplical-sets">Simplical sets: The non-categorical version</h3>
+
+
+
+
+
+            <hr/>
+            <!-- ================================================================== -->
+            <!-- =======                  Category Theory                      ===== -->
+            <!-- ================================================================== -->
+
+            <h3 id="category-theory">Category Theory Basics</h3>
+            <p> I'm pretty sure there are other pieces that do this justice </p>
+
+            <hr/>
+            <!-- ================================================================== -->
+            <!-- =======                  Category Theory formulation of Simplical Sets                      ===== -->
+            <!-- ================================================================== -->
+            <h3 id="cat-formulation">Category Theory formulation of Simplical Sets</h3>
+            <p> </p>
+            <div>
+                <h4 id="references"> References </h4>
+                <ul>
+                    <li> <a href="https://www.amazon.ca/Topology-K-J%C3%A4nich/dp/0387908927">Topology by Klaus Janich</a></li>
+                    <li> <a href="https://www.sciencedirect.com/science/article/pii/S0019357718303288">Combinatorial topology and constructive mathematics</a></li>
+                    <li> <a href="https://arxiv.org/pdf/2411.18561v1">Simplicial sets in topology, category theory, and beyond</a> [Highly recommended] </li>
+                </ul>   
+            </div>
+    </body>
+</html>
