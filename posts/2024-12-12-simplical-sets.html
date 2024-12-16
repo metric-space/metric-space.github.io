@@ -22,7 +22,7 @@
             </div>
         </div>
 
-        <h1> Work in Progressed ... Work in Progress !!!!</h1>
+        <h1> Work in Progress ... Work in Progress !!!!</h1>
 
         <div id="content">
             <div>
@@ -42,11 +42,11 @@
             <hr/>
             <div> 
                 <h3 id="foreword"> Foreword </h3>
-                <p> I've dealt with a watered down version of <strong>Category theory</strong> in the form of <strong>Haskell</strong> and never really in all of it's (category theory) glory. </p>
+                <p> I've dealt with a lite version of <strong>Category theory</strong> in the form of <strong>Haskell</strong> and never really in all of it's (category theory) glory. </p>
                 <p> All that (somewhat) changed ... WHEN THE (metaphorical) FIRE NATION ATTACKED </p>
                 <p> While going down the rabbit hole of the mathematics behind <a href="https://arxiv.org/pdf/1802.03426">UMAP (Uniform Manifold approximation and projection for dimensional reduction)</a> I came across the concept of a <strong>Simplical Set</strong> and was puzzled as to why it is a <strong>contravariant functor </strong> and not just a <strong>plain old covariant functor</strong></p> </div>
                 <p> Most of what are discussed are parts of <strong>Algebraic topology</strong> (formly called Combinatorial topology) </p>
-                <p> While I hoped there is a linear route to understanding things deeply, I think </p>
+                <p> While I hoped there is a somewhat linear route to understanding things deeply, I think in some places it just makes sense to jump ahead</p>
             <hr/>
             <!-- ================================================================== -->
             <!-- =======                  Warning                             ===== -->
@@ -59,7 +59,7 @@
             <!-- ================================================================== -->
             <h3> Why would any one care about the Simplicial Fraternity or Combinatorial topology? </h3>
             <p> By Simplicial Fraternity I mean the collection of objects that are related to simplices i.e. Simplices, Simplicial complexes, Abstract Simplicial Complexes and Simplicial Sets </p>
-            <p> Introducing the  <strong>Simplical Approximation Theorem </strong>: </p>
+            <p> Introducing the  <strong>Simplical Approximation Theorem</strong>: </p>
             <blockquote> 
                 Let \( \mathrm{K}, \mathrm{L} \) be simplicial complexes. 
                 A simplicial mapping \( f: \mathrm{K} \rightarrow \mathrm{L} \) is called a simpicial approximation of a confinuous function \( F: |\mathrm{K}| \rightarrow |\mathrm{L}| \) if for every point \( x \in |\mathrm{K}|, |f|(x) \) is in the minimal closed simplex of L containing the point \( \mathrm{F}(x)\)
@@ -87,6 +87,8 @@
             <p> By convex hull of points \(v_0,\ldots,v_k\) we mean \( \bigl\{ \sum_0^k \lambda_i v_i | \lambda_0 + \lambda_1 + \ldots + \lambda_k = 1 \bigr\} \) </p>
 
             <p>  and by <q>general position</q> we mean \( v_1 - v_0, \ldots, v_k - v_0  \) are linearly independent </p>
+
+            <p> Simplices by themselves are not interesting becuse they are contractible (echoing what was said in )
 
             <hr/>
             <!-- ================================================================== -->
@@ -168,23 +170,25 @@ of \(\mathbf{X}^j\) .
 
             <p>The point of all of this i.e Simplex, Simplicial Complexes and Abstract Simplicial Complexes is to approximate a topological space </p>
 
-            <p> The stuff covered so far do a good job but we're not quite there yet. We now look at product operations on simplicial complexes </p>
+            <p> The stuff covered so far do an okay job but so far we're not quite there yet. We now look at product operations on simplicial complexes </p>
 
-            <h4> Brief bit on the Universal property of Products. (<u>Side:</u>at the moment I haven't thought about why this is even as thing or even True) </h4>
+            <p> Why? We can create new topologies by looking at th [Complete] </p>
 
-            <p> The following is a diagram  from <a href="https://www.amazon.ca/Algebra-Chapter-0-Paolo-Aluffi/dp/0821847813">Algebra: Chapter 0</a> that slighly to modified to match that of [insert paper] </p>
+            <h4> Brief bit on the Universal property of Products</h4>
 
             <figure>
                 <img src="../images/product_diagram.png" height="300px" alt="Commutative diagram of Products" />
                 <figcaption> Commutative diagram of Products </figcaption>
             </figure>
 
-            <p> By commutative diagram we mean as long you start from any node (Letters here) and as long as you follow the arrows, you should get the same answer regardless of path followed</p>
+            <p> Nicked from <sup><a href="#ref4">[4]</a></sup>, formalizing the concept of a product from annals of Category Theory</p>
 
+            <blockquote>
+                <strong>Definition 3.71</strong> Let \(\beth\) be a category and \(L,K\) be objects in \(\beth\). A <em>product</em> of \(L\) and \(K\) is an object, denoted \(L \times K\), together with morphisms  \(\pi_L: L \times K \rightarrow L\) and \(\pi_K: L \times K \rightarrow K\) such that forall objects \( M\) together with morphisms \(f_L: M \rightarrow K\) and  \(f_K: M \rightarrow K\), there exists a unique morphism \(M \rightarrow L \times K \) denoted \( \left< f_L,f_K \right> \), for which the above diagram commutes
+                
+            </blockquote>
 
-
-
-
+            <p> While I'm still grappling with the whole implications of this (maybe I'm overcomplicating things) but this doesn't define the exact computation of the product but tells you whatever you define as the project as long as your have these projections defined along with it, forall  </p>
 
 
             <hr/>
@@ -214,9 +218,10 @@ of \(\mathbf{X}^j\) .
             <div>
                 <h4 id="references"> References </h4>
                 <ul>
-                    <li> <a href="https://www.amazon.ca/Topology-K-J%C3%A4nich/dp/0387908927">Topology by Klaus Janich</a></li>
-                    <li> <a href="https://www.sciencedirect.com/science/article/pii/S0019357718303288">Combinatorial topology and constructive mathematics</a></li>
-                    <li> <a href="https://arxiv.org/pdf/2411.18561v1">Simplicial sets in topology, category theory, and beyond</a> [Highly recommended] </li>
+                    <li id="#ref1"><a href="https://www.amazon.ca/Topology-K-J%C3%A4nich/dp/0387908927">Topology by Klaus Janich</a></li>
+                    <li id="#ref2"><a href="https://www.sciencedirect.com/science/article/pii/S0019357718303288">Combinatorial topology and constructive mathematics</a></li>
+                    <li id="#ref3"><a href="https://arxiv.org/pdf/2411.18561v1">Simplicial sets in topology, category theory, and beyond</a> [Highly recommended] </li>
+                    <li id="#ref4"><a href="">An Invitation to Applied Category Theory: Seven Sketches on Compositionality</a></li>
                 </ul>   
             </div>
     </body>
