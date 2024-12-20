@@ -88,7 +88,7 @@
             <!-- ================================================================== -->
             <h3>Simplex</h3>
 
-            <p> I like the definition given in the book <q>Topology by Klaus Janich</q> because among other things it emphasizes the concept of the general position</p>
+            <p> I like the definition given in the book Topology by Klaus Janich <sup><a href="#ref1">[1]</a></sup> because among other things it emphasizes the concept of the general position</p>
 
             <p> By a k-dimensional simplex or k-simplex in \( \mathrm{R}^n \) we mean the convex hull \( s(v_o,\ldots, v_k) \) of k + 1 points in the general position </p>
 
@@ -184,7 +184,9 @@ of \(\mathbf{X}^j\) .
 
             <p> The stuff covered so far do an okay job but so far we're not quite there yet. We now look at product operations on simplicial complexes </p>
 
-            <p> Why? We can create new topologies by looking at th [Complete] </p>
+            <p> Why? Product spaces are defined for topological spaces and we want to use an analogous operation for simplicial complexes. Easier said than done </p>
+
+            <p> Among other yet to see obstacles, one of the first things we need to do is to define a product of simplicial complexes </p>
 
             <h4> Brief bit on the Universal property of Products</h4>
 
@@ -201,6 +203,31 @@ of \(\mathbf{X}^j\) .
             </blockquote>
 
             <p> While I'm still grappling with the whole implications of this (maybe I'm overcomplicating things) but this doesn't define the exact computation of the product but tells you whatever you define as the project as long as your have these projections defined along with it, forall  </p>
+
+            <p> As given in  <sup><a href="#ref3">[3]</a></sup> the product of two simplicial complexes that follows the universal property of products is : </p>
+
+            <blockquote>
+
+                \( \begin{aligned} V_{K \times L} &= V_K \times V_L \\ S_{K \times L} &= \bigl\{ \sigma \in \mathcal{P}(V_{K \times L}), \pi_L(\sigma) \in S_L \land \pi_K(\sigma) \in S_K  \bigr\} \end{aligned} \)
+
+            </blockquote>
+
+            <p> (Again from  <sup><a href="#ref3">[3]</a></sup>) as an example let us look at the product of a 1-simplex and two 0-simplices </p>
+
+            <blockquote>
+
+                \( \begin{aligned} V_L &= \{V_0, V_1\} \\ S_L &= \{ \{ V_0 \}, \{ V_1 \}, \{ V_0, V_1 \} \} \\  V_K &= \{V_2, V_3\} \\ S_K &= \{ \{ V_2 \}, \{ V_3 \} \}  \end{aligned}  \)
+
+            </blockquote>
+
+            <blockquote>
+                \( \begin{aligned} V_{K \times L} &= \{ (V_2, V_0), (V_2, V_1), (V_3, V_0), (V_3, V_1) \} \\ S_{K \times L} &= \{  \{(V_2, V_0)\}, \{(V_2, V_1)\}, \{(V_3, V_0)\}, \{(V_3, V_1)\}, \{ (V_2, V_0) , (V_2, V_1) \},  \{ (V_3, V_0) , (V_3, V_1) \} \}  \end{aligned} \)
+            </blockquote>
+
+            <p> Remember! while \( \mathcal{P}(V_{K \times L}) \) is a lot bigger set than the one above, past the filters in the form of the projection related clauses (i.e. \( \ldots \pi_L(\sigma) \in S_L \land \pi_K(\sigma) \in S_K  \bigr\}  \)), it gets reduced to the set above </p>  
+
+
+
 
 
             <hr/>
