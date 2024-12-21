@@ -32,7 +32,7 @@
                     <li><a href="#simplex">Simplex</a></li>
                     <li><a href="#simplical-complexes">Simplical Complexes</a></li>
                     <li><a href="#abstract-simplical-complex">Abstract Simplical Complex</a></li>
-                    <li><a href="#ordered-simplical-sets">Ordered Simplical sets</a></li>
+                    <li><a href="#ordered-simplical-complexes">Ordered Simplicial Complexes</a></li>
                     <li><a href="#simplical-set-operators">Face and Degeneracy Operators: Why and What</a></li>
                     <li><a href="#category-theory">Category Theory Basics</a></li>
                     <li><a href="#cat-formulation"></a>Category Theory formulation of Simplical Sets</li>
@@ -178,7 +178,7 @@ of \(\mathbf{X}^j\) .
             <!-- ================================================================== -->
             <!-- =======                  Ordered-Simplical sets                      ===== -->
             <!-- ================================================================== -->
-            <h3 id="ordered-simplical-sets">Ordered Simplical sets</h3>
+            <h3 id="ordered-simplical-complexes">Ordered Simplical Complexes</h3>
 
             <p>The point of all of this i.e Simplex, Simplicial Complexes and Abstract Simplicial Complexes is to approximate a topological space </p>
 
@@ -226,18 +226,85 @@ of \(\mathbf{X}^j\) .
 
             <p> Remember! while \( \mathcal{P}(V_{K \times L}) \) is a lot bigger set than the one above, past the filters in the form of the projection related clauses (i.e. \( \ldots \pi_L(\sigma) \in S_L \land \pi_K(\sigma) \in S_K  \bigr\}  \)), it gets reduced to the set above </p>  
 
+            <figure>
+                <img src="../images/product_expect.png" height="200px" width="200px" alt="Sane product" />
+                <figcaption> Sane product of Simplicial Complexes </figcaption>
+            </figure>
 
+            <p> The calculated </p>
 
+            <p><strong>But </strong> let us look at another example <u>where the geometric intuition of what the product should like does not match the calculated product </u></p>
+
+            <p> Consider the product of two 1-simplices </p>
+
+            <blockquote>
+                \( \begin{aligned} V_L &= \{V_0, V_1\} \\ S_L &= \{ \{ V_0 \}, \{ V_1 \}, \{ V_0, V_1 \} \} \\  V_K &= \{V_2, V_3\} \\ S_K &= \{ \{ V_2 \}, \{ V_3 \}, \{ V_2, V_3 \} \}  \end{aligned}  \)
+            </blockquote>
+
+            <p> (I'll be switching to just numbers rather than \(V_i\) for the sake of brevity) </p>
+
+            <blockquote>
+                \( \begin{aligned} V_{K \times L} &= \{ (2,0), (2,1), (3,0), (3,1) \} 
+                \\ S_{K \times L} &= \{ \{ (2,0) \}, \{ (2,1) \}, \{ (3,0) \}, \{ (3,1) \} \} \cup \{ \{ (2,0), (2,1) \}, \{ (2,0), (3,0) \}, \{ (2,0), (3,1) \}, \{ (2,1), (3,0) \}, \{ (2,1), (3,1) \}, \{ (3,0), (3,1) \} \} \\ 
+                & \cup \{ \{ (2,0), (2,1), (3,0) \}, \{ (2,0), (2,1), (3,1) \}, \{ (2,0), (3,0), (3,1) \}, \{ (2,1), (3,0), (3,1) \} \} \cup \{ \{ (2,0), (2,1), (3,0), (3,1) \} \} \end{aligned} \)
+            </blockquote>   
+
+            <p> (Notice that nothing was filtered out by the projection clauses)</p>
+            <p> The product calculated here is a 3-simplex </p>
+
+            <p> The geometric intuition which assuming we calculated the product with the geometric realization i.e the cartesian product of the simplices would be a square </p>
+
+            <p> Soooo what might the fix be? Answer: <strong>TOTALLLL ORDERING </strong> on simplices and place the total ordering constraint within our definition of a product  </p>
+
+            <p> i.e \( S_{K \times L} = \{ \sigma \in \mathcal{P}(V_{K \times L}), \pi_L(\sigma) \in S_L \land \pi_K(\sigma) \in S_K \land \pi_L(\sigma) \leq \pi_K(\sigma) \} \) </p>
+
+            <p> so going back to the product of two 1-simplices </p>
+
+            <blockquote>
+                \( \begin{aligned} V_{K \times L} &= \{ (2,0), (2,1), (3,0), (3,1) \} 
+                \\ S_{K \times L} &= \{ \{ (2,0) \}, \{ (2,1) \}, \{ (3,0) \}, \{ (3,1) \} \} \cup \{ \{ (2,0), (2,1) \}, \{ (2,0), (3,0) \}, \{ (2,0), (3,1) \}, \{ (2,1), (3,1) \}, \{ (3,0), (3,1) \} \} \cup \{ \{ (2,0), (2,1), (3,1) \}, \{ (2,0), (3,0), (3,1) \}, \} \end{aligned} \)
+            </blockquote>
 
 
             <hr/>
             <!-- ================================================================== -->
             <!-- =======                  Simplical sets                      ===== -->
             <!-- ================================================================== -->
+            <h3 id="simplical-sets">Quotient-spaces and Quotient Maps: Path to Simplicial Sets</h3>
+
+            <p> Again nicked from <sup><a href="#ref3">[3]</a></sup> </p>
+
+            <p> We look at the example of trying to triangulate a \( \mathbb{S}^1 \) </p>
+            
+            <p> We do this by looking at the circle as a quotient space of the interval \( [0,1] \), and attempting the same with an ordered simplicial complex </p>
+
+            <p> The 1-simplex represented by a 1-simplex with representation: </p>
+
+            <blockquote>
+                \( V = \{0,1\} \) and \( S = \{ \{0\}, \{1\}, \{0,1\} \} \)
+            </blockquote>
+
+            <p> But when the ends are identified, how would you represent this in terms of simplices?  <u> It's clearly not a 1-simplex </u> and definitely not a 0-simplex </p>
+
+            <p> Could you do this: \( V = \{0,1\} \) and \( S = \{ \{0\}, \{\{1\}\}, \{0,1\}, \{1,0\} \} \) ?</p>
+
+            <p> Nope, that doesn't cature the fact that the ends are identified </p>
+
+            <p> What about this: \( V = \{0,1\} \) and \( S_0 = \{ \{1\} \} , S_1 = \{ \{0\} \} \) ?</p>
+
+            <p> It encodes the information but gives us no indication of where the ends are identified. What if there were explicit functions that show the identification? </p>
+
+            <blockquote>
+                \( \begin{aligned} V &= \{0,1\} \\ S_0 &= \{ \{1\} \} , S_1 = \{ \{0\} \} \\ f_0&: S_1 \rightarrow S_0 \text{ where } f_0(1) = 0 \\ f_1&: S_1 \rightarrow S_0 \text{ where } f_1(0) = 1 \end{aligned} \)
+            </blockquote>
+
+
+            <hr/>
+
+            <!-- ================================================================== -->
+            <!-- =======                  Simplical sets                      ===== -->
+            <!-- ================================================================== -->
             <h3 id="simplical-sets">Simplical sets: The non-categorical version</h3>
-
-
-
 
 
             <hr/>
