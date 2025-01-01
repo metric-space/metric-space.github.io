@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Metric Space - Combinatorics question: Minimum number of people who know each other in a party of 1982</title>
+        <link rel="stylesheet" href="../css/default.css" />
+        <link rel="stylesheet" href="../js/highlight/styles/nord.css">
+        <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+        </script>
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Metric-Space</a>
+            </div>
+            <div id="navigation">
+                <a href="../index.html">Back</a>
+            </div>
+        </div>
+
+
+        <div id="content">
+            <div> 
+                <h3 id="Intro"> Problem Intro</h3>
+                <p> While looking for combinatorics problems to solve, I stumbled across this <a href="https://math.stackexchange.com/questions/2018584/a-combinatorics-problem-from-the-imo-1982">gem on Math stackexchange</a> </p>
+                <p> While there is a <a href="">link to the solution</a>, my solution differs from it.  </p>
+                <p> My proof is more a solution by construction </p>
+                <p> The question is as follows: </p>
+                <blockquote>
+                    In a party with 1982 persons, among any group of 4, there is at least one person, who knows each of other three. What is the minimum number of people in the party who knows everyone else?
+                </blockquote>
+            <hr/>
+            </div>
+            <div>
+                <h3 id="solution"> Solution </h3>
+                <p> The key bit here is <u> Given any group of 4 people, there is at least one person who knows each of the other three </u>. From hereon out we'll refer to this bit as <strong> Statement A </strong></p>
+                <p> So if we enumerate all the possible groups of 4 people from the total head count of 1982 i.e \( \mathbf{C}^{1982}_{4} \), and <strong>Statement A</strong> applies to all of these groups </p>
+                <p> So we start building our solution by crafting these \( \mathbf{C}^{1982}_{4} \) groups manually while keeping in mind (again) <strong>Statement A</strong> has to be fullfilled. </p>
+                <p> Let's say we enumerate all the people in the party as \( p_1, p_2, p_3, \ldots, p_{1982} \) </p>
+                <p> We start by saying \( p_1 \) knows everyone else in the party. <p>
+                <p> The number of groups (order is irrelevant) of 4 people that can be formed from \( p_1 \) and the rest of the party is \( \mathbf{C}^{1981}_{3} \) </p>
+                <p> Now we move on to the next person \( p_2 \) who knows everyone else in the party, but while forming groups of 4 this time we want to avoid double counting so we'll avoid the groups already constructed as part of \( p_1 \)'s portion' </p>
+                <p> The number of groups (order is irrelevant) of 4 people that can be formed from \( p_2 \) and the rest of the party (excluding the groups that have \(p_1 \)) is \( \mathbf{C}^{1980}_{3} \) </p>
+                <p> As we go down the line we'll have to avoid the groups already constructed using the previous people </p>
+                <p> So to make it clear as to how significant the double counting is,  this is let's consider the following: </p>
+                <p> By the time we make it to \( p_{1979} \), the groups that can be formed from \( p_{1979} \) and the rest of the party (excluding the groups that have \(p_1, p_2, \ldots, p_{1978} \)) is \( \mathbf{C}^{3}_{3} \) </p>
+                <p> Let's tally up the total count we have so far: </p>
+                <p> \( \mathbf{C}^{1981}_{3} + \mathbf{C}^{1980}_{3} + \ldots + \mathbf{C}^{3}_{3}  = \mathbf{C}^{1982}_{4} \) (from the <strong><a href="https://en.wikipedia.org/wiki/Hockey-stick_identity">Hockey Stick Identity</a></strong>) </p>
+
+
+                <p><u> So we built groups of four manually and we've arrived at the limit of \( \mathbf{C}^{1982}_{4} \) groups by the time we're done with the 1979th person and we've done so in such a way that <strong>Statement A</strong> is satisfied </u> </p>    
+                <p> Something to point out: We've been left with 3 people who all the other folks know but they don't know each other but know everybody else, i.e \( p_{1980}, p_{1981}, p_{1982} \) </p>
+                <p><strong> So the minimum number of people in the party who know everyone else is 1979 </strong> </p>
+            </div>
+        </div>
+        <div id="footer">
+            <a href="https://www.brainyquote.com/authors/alfred_north_whitehead" target="_blank">Quotes by an okay chap</a>
+        </div>
+    </body>
+</html>
