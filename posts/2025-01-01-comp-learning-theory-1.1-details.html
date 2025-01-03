@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Metric Space - Computational Learning Theory: Missing Nested Details</title>
+        <link rel="stylesheet" href="../css/default.css" />
+        <link rel="stylesheet" href="../js/highlight/styles/nord.css">
+        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Metric-Space</a>
+            </div>
+            <div id="navigation">
+                <a href="../index.html">Back</a>
+            </div>
+        </div>
+
+        <h1> Work in Progress ... Work in Progress !!!!</h1>
+
+        <div id="content">
+            <div> 
+                <h3 id="Intro"> Problem Intro</h3>
+                <p> I am going through this book <sup><a href="#ref1">[1]</a></sup> on Computational Learning Theory. </p>
+                <p> This is at the first block of technical info located in the first chapter titled: <strong> Probably Approximately Correct (PAC) Learning </strong>, <u> their steps to a first stab at a definition for PAC learning </u> </p>
+                <p> &nbsp; </p>
+                <p> The game of learning being played here is learning an axis aligned (sides are parallel to the coordinate axis) rectangle <strong>R</strong> in a 2-D plane (Euclidean \( \mathbb{R}^2 \)) </p>
+                <p> Paraphrasing from page 1 of the book </p>
+                <blockquote>
+                    <p> The player recieves information about <strong> R </strong> only through the following process: a random point <em>p</em> is chosen in the plane according to the fixed probability distribution <strong> D </strong>. The player is given the coordinates of <em>p</em> and is then told whether or not <em>p</em> lies inside <strong> R </strong> </p>
+                    <p> The player's goal is to output a hypothesis rectangle <strong> \(R'\) </strong> that is as close as possible to <strong> R </strong> using as few examples as possible and the least amount of computation possible</p>
+                </blockquote>
+
+                <p><u> Further more: The error of the hypothesis rectangle \( R' \) is defined as the probability that a random point <em>p</em> chosen according to <strong> D </strong> will lie inside \( (R - R') \cup (R - R') \) </u></p>
+                <p> The following is verbatim from page 3 of the book: </p>
+                <blockquote>
+                    There is a simple and efficient strategy for the player of the rectangle learning game. The strategy is to request a <em>"sufficiently large"</em> number <strong>m</strong> of random examples, then choose \( R'\) which gives the tightest fit to the positive examples (that is, that rectangle with the samllest area that includes all of the positive examples and none of the negative examples)
+                </blockquote>
+
+                <img src="../images/pac_1.png" alt="Rectangles" width="400" height="400" />
+
+                <h4> The main bit: </h4><p> (Quoted almost verbatim from page 3 of the book) </p>
+                <blockquote>
+                    We will now show that for any target rectangle <strong> R </strong> and any distribution <strong>D</strong>, and for any small values \( \epsilon \) and \( \delta (0 \lt \epsilon, \delta \le \frac{1}{2}) \), for a suitable chosen value of <strong>m</strong> we can assert with probability at least \( 1 - \delta \), the tightest-fit rectangle has error at most \( \epsilon \) with respect to <strong> R </strong> and <strong> D </strong>
+                </blockquote>
+                <hr/>
+            <!-- ================================================================== -->
+            <!-- =======                  The strategy                         ===== -->
+            <!-- ================================================================== -->
+            <h3> Strategy</h3>
+            <p> Quoted pretty much verbatim from pages 3-4 of the book </p>
+            <blockquote>
+            First observe that the tightest-fit rectangle \(R'\) is always contained in the target rectangle <strong>R</strong>. We can express the difference \( R - R' \) as four rectangular strips. ...[Omitted] Now if we can guarentee that the weight under <strong>D</strong> of each strip (that is, the probability with respect to <strong>D</strong> of falling in the strip) is at most \(\frac{\epsilon}{4}\), then we can conside that the error of \(R'\) is at most \(4(\frac{\epsilon}{4})=\epsilon \) (Here we have erred on the side of pessimism by counting each overalp region twice)
+
+            </blockquote>
+            <hr/>
+            <!-- ================================================================== -->
+            <!-- =======                  The solution                       ===== -->
+            <!-- ================================================================== -->
+            <h3> 
+            <h4> Their solution </h4>
+            <img src="../images/pac_2.png" alt="Rectangles" width="400" height="400" />
+            <p> They start off with taking a sliver of the distribution <strong>D</strong> that amounts to \(\frac{\epsilon}{4}\) that is located at the top strip (of the 4) of the difference \( R - R' \) that extends from the top of \( R \) towards the top of \( R' \) (<u> It is not necessarily the case that it reaches close or even engulfs the top of \( R' \) </u>) </p>
+
+            <p> The probability of  a randomly drawn point <em>p</em> missing this region (which is at most \(\frac{\epsilon}{4}\)) is (1 - \(\frac{\epsilon}{4}\)) </p>
+
+            <p> <u>Now remember we have <strong>m</strong> independent samples to form our hypothesis rectangle \( R' \) so the probability that all the samples miss this region is \((1 - \frac{\epsilon}{4})^m\) </u> </p>
+
+            <p> Now here is where I layout my problem with the solution and this is verbatim from the book right after the above bits of the solution was defined </p>
+
+            <blockquote>
+
+                ... Therefore the probability that m independent draws from <strong>D</strong> all miss the region T is exactly \((1 - \frac{\epsilon}{4})^m\). Here we are using the fact that the probability of a conjection of independent events is simply the product of the probabilities of individual events. <span style="background-color:coral">The same analysis holds for the other three rectangular regions of \(R - R'\), so by <strong>union bound</strong> the probability that any of the four strips of \(R - R'\) has a weight greater than \(\frac{\epsilon}{4}\) is at most 4 \((1 - \frac{\epsilon}{4})^m\) </span>. By union bound, we mean the fact that if A and B are two events (that is, subsets of a probability space), then
+
+                <p> \(\mathbf{Pr}[A \cup B] \le \mathbf{Pr}[A] + \mathbf{Pr}[B] \) </p> 
+
+
+
+            </blockquote>
+            
+            <p> <strong>W.T.F</strong> How do you go from something so simple as the probability of missing a fixed region to probability of an error strip ?</p>
+            <p> How does one spell out trivial probability laws and then manage to make this jump of reasoning in one shot is beyond me. </p>
+            <p>&nbsp;</p>
+            <h4>Questions that need to be answered</h4>
+            <ol>
+                <li> How do you go from something so simple as the probability of missing a fixed region (T) to  <u>probability of an error strip having a weight</u> </p>  </li>
+                <li><strong> More importantly and quite frankly the reason for this whole post </strong> How do you make a statement about the probability of the \(R - R'\) regions being greater than \( \frac{\epsilon}{4} \)  without explicitly stating the probability of regions having weight \( = \frac{\epsilon}{n} \) where \( n \in (0,4) \)</li>
+            </ol>
+            <h4>My take on filling in the details</h4>
+            <ol>
+                <li><div><p>Let's say the error strip did have an error that was \( \gt  \frac{\epsilon}{4} \), let's call this weight \(  \epsilon_{\text{strip}} \) </p>
+                    <p> \( \epsilon_{\text{strip}}  \gt \frac{\epsilon}{4} \therefore 1 - \epsilon_{\text{strip}} \lt 1 - \frac{\epsilon}{4} \)  \(\therefore (1 - \epsilon_{\text{strip}})^m \lt (1 - \frac{\epsilon}{4})^m \) </p>
+                    <p> As long as the error strip has a weight \( \ge \frac{\epsilon}{4} \) the probability of all the samples missing this strip is upperbound by \((1 - \frac{\epsilon}{4})^m\) i.e the probability of the error strip having a weight \( \ge \frac{\epsilon}{4} \) is less than the probability of all the samples missing the fixed strip </p>
+                    <p> This upperbound is important for the addressing the next concern </p> </div>
+                <li> <p> Let's us look at carefully at just the one strip i.e \( \mathbf{Pr}[\textrm{error strip has weight} \gt \frac{\epsilon}{4}] =  (1-\frac{\epsilon}{4})^m \) </p>
+                    <p> Again how is \( \mathbf{Pr}[\textrm{error strip has weight} \gt \frac{\epsilon}{4}] \) not explicitly expanded to \( \mathbf{Pr}[\land_{n} (\textrm{error strip has weight} = \frac{\epsilon}{n}) \textrm{where  n} \in (0,4) \subset \mathbb{R}] \) ?? </p>
+                    <p> The one thing to note is that these are <u>Nested Events</u> and the cardinality of the set of nested events is \( \infty \) </p>
+                    <p> We can use the theorem described here <sup><a href="#ref1">[2]</a></sup> which goes : \( A_1 \subset A_2 \subset A_3 \subset \ldots , P(A_1 \cup A_2 \cup A_3 \cup \ldots) = \lim_{n \to \infty} P(A_n) \) </p>
+                    <p> Given we have the upperbound , the limit of the probability of the nested events is the upperbound </p>
+                    <p> Therefore the probability of the error strip having a weight \( \gt \frac{\epsilon}{4} \) is at most \( (1 - \frac{\epsilon}{4})^m \) </p>
+            </ol>
+            </div>
+        </div>
+        <div>
+            <h4 id="references"> References </h4>
+            <ol>
+                <li id="ref1"><a href="https://direct.mit.edu/books/monograph/2604/An-Introduction-to-Computational-Learning-Theory">An Introduction to Computational Learning Theory</a></li>
+                <li id="ref2"><a href="https://faculty.washington.edu/eathomp/S340_09/Notes/week5.pdf">University of Washington: Stat 340; Fall 2009 by Elizebeth Thomas, course notes</a></li>
+            </ol>
+        </div>
+        <div id="footer">
+            <a href="https://www.brainyquote.com/authors/alfred_north_whitehead" target="_blank">Quotes by an okay chap</a>
+        </div>
+    </body>
+</html>
+
+
+
