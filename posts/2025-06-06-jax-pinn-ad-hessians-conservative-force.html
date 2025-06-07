@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Metric Space - Jax, PINN, AD, Hessians and a conservative force </title>
+        <link rel="stylesheet" href="../css/default.css" />
+        <link rel="stylesheet" href="../js/highlight/styles/nord.css">
+        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">Metric-Space</a>
+            </div>
+            <div id="navigation">
+                <a href="../index.html">Back</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <div> 
+                <h3 id="Intro"> Problem Intro</h3>
+		<p> You have an untrained neural net that spits a gravity scalar potential \( \mathbb{U} \) in response to a 3D cartesian position </p>
+		<p> The goal is to figure out gravitational acceleration from the gravity scalar potential </p>
+		<p> Turns out the gravitational acceleration \( \mathbf{a}(\mathbf{x}) \) is obtained as the negative gradient of the potential: </p> 
+		<p> \[ \mathbf{a}(\mathbf{x}) = -\nabla U(\mathbf{x}) \] </p>
+		<br/>
+		<p> At some point we want to train the neural net, so inevitably we'll get a dataset of 3d cartesian products mapped to their respective acceleration values </p>
+		<p> <i> Hang on, why bother with a NN spitting out a scalar potential when it can spit 3 ripe values for acceleration </i> ? </p>
+
+		<blockquote style="border:solid #5b6dcd 2px"> "Most obvious is the fact that the network is now trained with the knowledge that there is a rela-
+			tionship between the accelerations it produces via automatic differentiation and the more
+			fundamental scalar potential. Second, because the network is learning a representation of the
+			potential rather than the accelerations, all three acceleration vector components of the training
+			data are now being used to constrain a single scalar function. This is a much more efficient
+			regression for the network, learning a single potential rather than being forced to learn three
+			separate acceleration features" 
+		</blockquote>
+
+		<p> <strong>And I advise you dear reader to call it out for what is .... a bullshit claim till proven right</strong></p>
+
+		<p> So let's look at the other possible reasons. The first on the list is the loss function in the paper <p>
+
+		<p> The loss function is taken from this paper: <a href="https://hanspeterschaub.info/PapersPrivate/Martin2022d.pdf">Physics-informed neural networks for gravity field modeling of small bodies</a></p>
+		<p> The loss in question is here: </p>
+		<p> \[ \mathcal{L}(\theta) = \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \mathbf{a}_{\text{true}} - (- \nabla U(\mathbf{x}_{i})) \right\|^2}_{\text{acceleration error}} + \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \nabla^2 U(\mathbf{x}_i) \right\|^2}_{\text{Laplacian penalty}} + \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \nabla \times \nabla U(\mathbf{x}_i) \right\|^2}_{\text{curl penalty}} \] </p>
+		<p> The first term probably makes sense given it is your basic MSE with the true acceleration values. As for the rest ... <p>
+
+		<p> The paper's contribution is that since gravity is a conservative force, the loss function could be significantly enhanced by additional dynamic properties</p>
+
+		<p> The scalar potential learned by the network must also obey these additional physics properties </p>
+
+		<ol>
+			<li> \( \nabla^2 U = 0 \) </li>
+			<li> \( \nabla \times \mathbf{a} = 0 \) </li>
+		</ol>
+
+		<p> SO the cool bit is that by including these terms especially by including them </p>
+
+
+	   </div>
+	</div>
+
+	<div id="footer">
+            <a href="https://www.brainyquote.com/authors/alfred_north_whitehead" target="_blank">Quotes by an okay chap</a>
+        </div>
+    </body>
+</html>
