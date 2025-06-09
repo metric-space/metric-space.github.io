@@ -45,7 +45,7 @@
 
 		<p> The loss function is taken from this paper: <a href="https://hanspeterschaub.info/PapersPrivate/Martin2022d.pdf">Physics-informed neural networks for gravity field modeling of small bodies</a></p>
 		<p> The loss in question is here: </p>
-		<p> \[ \mathcal{L}(\theta) = \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \mathbf{a}_{\text{true}} - (- \nabla U(\mathbf{x}_{i})) \right\|^2}_{\text{acceleration error}} + \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \nabla^2 U(\mathbf{x}_i) \right\|^2}_{\text{Laplacian penalty}} + \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \nabla \times \nabla U(\mathbf{x}_i) \right\|^2}_{\text{curl penalty}} \] </p>
+		<p> \[ \mathcal{L}(\theta) = \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \mathbf{a_i}_{\text{true}} - (- \nabla U(\mathbf{x}_{i})) \right\|^2}_{\text{acceleration error}} + \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \nabla^2 U(\mathbf{x}_i) \right\|^2}_{\text{Laplacian penalty}} + \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \nabla \times \nabla U(\mathbf{x}_i) \right\|^2}_{\text{curl penalty}} \] </p>
 		<p> The first term probably makes sense given it is your basic MSE with the true acceleration values. As for the rest ... <p>
 
 		<p> The paper's contribution is that since gravity is a conservative force, the loss function could be significantly enhanced by additional dynamic properties</p>
@@ -57,9 +57,19 @@
 			<li> \( \nabla \times \mathbf{a} = 0 \) </li>
 		</ol>
 
-		<p> SO the cool bit is that by including these terms especially by including them </p>
+		<p> So the cool bit is that by including these terms, we ensure the model being learnt is more in lne with the physics of things which in this case makes sure that force of gravity being modelled in inline with gravity being a conservative force and the physics that comes along with that fact  </p>
 
+		<p> Now let's think. Is there anything about the loss that might halt the neural net from spitting out 3 acceleration values? Let's give it a shot </p>
 
+		<p> \[ \mathcal{L}(\theta) = \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \mathbf{a_i}_{\text{true}} - \mathbf{a_i}_{\text{predicted}} \right\|^2}_{\text{acceleration error}} + \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \nabla \cdot (\mathbf{a_i}_{\text{predicted}}) \right\|^2}_{\text{Laplacian penalty}} + \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \nabla \times \mathbf{a_i}_{\text{predicted}} \right\|^2}_{\text{curl penalty}} \]  </p>
+
+		<p> The above is keeping in mind that \( \nabla^2 \mathbf{F} = \nabla \cdot \nabla \mathbf{F}  \) . <u> So clearly it's not the loss function ... atleast not in form </u> </p>
+
+		<p> So maybe just maybe it's regularity of what's been learnt </p>
+	   </div>
+
+	   <div>
+	
 	   </div>
 	</div>
 
