@@ -67,9 +67,47 @@
 		<p> The above is keeping in mind that \( \nabla^2 \mathbf{F} = \nabla \cdot \nabla \mathbf{F}  \) . <u> So clearly it's not the loss function ... atleast not in form </u> </p>
 
 		<p> So maybe just maybe it's <b>regularity</b> of what's been learnt </p>
+
+		<p> So just to get (WIP) </p>
 	   </div>
 
+	   <hr/>
+
 	   <div>
+		   <h2 id="calculating"> Calculating the Laplacian and the Curl of the Scalar Potential field in Jax</h2>
+
+		   <p> <u>There are no jax primitives to calculate these directly </u> To get going, a refresher in Vector Calculus is order </p>
+
+		   <h4>Gradient</h4>
+		   <p> A vector valued function that takes in a scalar valued (differential) function (of several variables!) </p>
+		   <p> A more precise way of expressing the domain and range of the function \( f \) and the gradient of the function  \( \nabla f \) is: </p>
+		   <p> \[ f: \mathbb{R}^n \rightarrow \mathbb{R}, \quad \nabla f: \mathbb{R}^n \rightarrow \mathbb{R}^n \]</p>
+		   <p> And now how the gradient is computed at a point \[ p = ( x, y, z) \]  (Note: we're using just 3 variables but that is not a constraint in general)</p>
+		   <p> \[ \nabla f(p) = \frac{\partial f(p)}{\partial x}\mathbf{i} + \frac{\partial f(p)}{\partial y}\mathbf{j} + \frac{\partial f(p)}{\partial z}\mathbf{k} \] </p>
+
+
+		   <br/>
+
+		   <h4>Jacobian: Generalization of the Gradient </h4>
+		   <p> While the input to a gradient is a scalar function, and some point it makes to ask if there is an equivalent if the input is a vector valued function <p>
+		   <p> For a function \( \mathbf{F} : \mathbb{R}^n \rightarrow \mathbb{R}^m \), the Jacobian is an \( m \times n \) matrix whose \( (i, j) \)-th entry is \( \partial F_i / \partial x_j \) </p>
+
+		   <h4>Divergence</h4>
+		   <p> A vector valued function that takes in a scalar valued (differential) function (of several variables!). \[ \nabla \mathbf{F}( x ) = \frac{}{}\ \]  </p>
+
+		   <br/>
+
+		   <h4> Curl </h4>
+		   <p> </p>
+
+		   <h4> Laplacian </h4>
+		   <p> A vector valued function that takes in a scalar valued (differential) function (of several variables!). \[ \nabla \mathbf{F}( x ) = \frac{}{}\ \]  </p>
+
+		   <br/>
+
+		   <h4> Hessian</h4>
+		   <p> The mother lode when it comes to our computation. </p>
+
 	
 	   </div>
 	</div>
