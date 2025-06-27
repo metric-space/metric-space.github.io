@@ -85,31 +85,69 @@
 		   <p> And now how the gradient is computed at a point \[ p = ( x, y, z) \]  (Note: we're using just 3 variables but that is not a constraint in general)</p>
 		   <p> \[ \nabla f(p) = \frac{\partial f(p)}{\partial x}\mathbf{i} + \frac{\partial f(p)}{\partial y}\mathbf{j} + \frac{\partial f(p)}{\partial z}\mathbf{k} \] </p>
 
-
 		   <br/>
 
 		   <h4>Jacobian: Generalization of the Gradient </h4>
 		   <p> While the input to a gradient is a scalar function, and some point it makes to ask if there is an equivalent if the input is a vector valued function <p>
 		   <p> For a function \( \mathbf{F} : \mathbb{R}^n \rightarrow \mathbb{R}^m \), the Jacobian is an \( m \times n \) matrix whose \( (i, j) \)-th entry is \( \partial F_i / \partial x_j \) </p>
+		   <p> To make things more concrete, let's say we have a function \( \mathbf{F} : \mathbb{R}^3 \rightarrow \mathbb{R}^3 \) and takes in \( \mathbf{p} = ( x, y, z) \in \mathbb{R}^{3}  \) as input and produces \( (f_{0}(\mathbf{p}), f_{1}(\mathbf{p}), f_{2}(\mathbf{p})) \in \mathbb{R}^{3} \) </p>
+		   <p> The Jacobian is: </p>
+		   <p> \[ J_{\mathbf{F}}(\mathbf{p}) = \begin{bmatrix} \frac{\partial f_0}{\partial x} & \frac{\partial f_0}{\partial y} & \frac{\partial f_0}{\partial z} \\ \frac{\partial f_1}{\partial x} & \frac{\partial f_1}{\partial y} & \frac{\partial f_1}{\partial z} \\ \frac{\partial f_2}{\partial x} & \frac{\partial f_2}{\partial y} & \frac{\partial f_2}{\partial z} \end{bmatrix} \] </p>
+
+		   <br/>
 
 		   <h4>Divergence</h4>
-		   <p> A vector valued function that takes in a scalar valued (differential) function (of several variables!). \[ \nabla \mathbf{F}( x ) = \frac{}{}\ \]  </p>
+		   <p> While the gradient maps a scalar function to a vector field (a vector field pretty much a vector valued function [there's a bit more to this]) , and the Jacobian maps a vector function to a matrix field (pretty much a matrix valued function), the divergence is a scalar-valued function applied to a vector field. </p>
+		   <p>Computationally that means vector in scalar out </p>
+		   <p> For a vector field \( \mathbf{F} : \mathbb{R}^n \rightarrow \mathbb{R}^n \), the divergence is defined as the dot product of the del operator with the vector field: </p>
+		   <p> \[ \nabla \cdot \mathbf{F} = \sum_{i=0}^{n-1} \frac{\partial F_i}{\partial x_i} \] </p>
+		   <p> More concretely, if \( \mathbf{F}(x, y, z) = (F_0, F_1, F_2) \), then: </p>
+		   <p> \[ \nabla \cdot \mathbf{F} = \frac{\partial F_0}{\partial x} + \frac{\partial F_1}{\partial y} + \frac{\partial F_2}{\partial z} \] </p>
+
 
 		   <br/>
 
 		   <h4> Curl </h4>
-		   <p> </p>
+		   <p> Something in the same line as the divergence is that in that it operates on a vector field. <strong> Something interesting to note about this operator is doesn't generalize beyond 3D space</strong>. The mechanical reasoning for this is evident if you see how the curl of a vector field is calculated</p>
+		   <p> For a vector field \( \mathbf{F}(x, y, z) = (F_0, F_1, F_2) \), the curl is defined as the cross product of the del operator with \( \mathbf{F} \): </p>
+		   <p> \[ \nabla \times \mathbf{F} = \begin{vmatrix} \mathbf{i} & \mathbf{j} & \mathbf{k} \\ \frac{\partial}{\partial x} & \frac{\partial}{\partial y} & \frac{\partial}{\partial z} \\ F_0 & F_1 & F_2 \end{vmatrix} \] </p>
+		   <p> Expanded out, this becomes: </p>
+		   <p> \[ \nabla \times \mathbf{F} = \left( \frac{\partial F_2}{\partial y} - \frac{\partial F_1}{\partial z}\right) \mathbf{i} + \left( \frac{\partial F_0}{\partial z} - \frac{\partial F_2}{\partial x}\right)\mathbf{j} + \left(\frac{\partial F_1}{\partial x} - \frac{\partial F_0}{\partial y} \right)\mathbf{k} \] </p>
+		   <p> Curiously the result is a new vector field representing the axis and intensity of local rotation of the input vector field. </p>
+
+
 
 		   <h4> Laplacian </h4>
-		   <p> A vector valued function that takes in a scalar valued (differential) function (of several variables!). \[ \nabla \mathbf{F}( x ) = \frac{}{}\ \]  </p>
+		   <p> (Parroting the <a href="https://en.wikipedia.org/wiki/Laplace_operator">wikipedia article on the same</a>) The Laplacian is a differential  operator that can be thought of as the divergence of the gradient of a scalar valued function. </p>
+		   <p> For a scalar-valued function \( f : \mathbb{R}^n \rightarrow \mathbb{R} \), the Laplacian is defined as:</p>
+		   <p> \[ \Delta f = \nabla \cdot \nabla f = \nabla^2 f  = \sum_{i=0}^{n-1} \frac{\partial^2 f}{\partial x_i^2} \] </p>
 
 		   <br/>
 
 		   <h4> Hessian</h4>
-		   <p> The mother lode when it comes to our computation. </p>
-
-	
+		   <p> <u>The mother lode when it comes to our computation of everything we need (for) </u> and this will be made more evident shortly. </p>
+		   <p> The Hessian is a square matrix of second-order partial derivatives of a scalar-valued function </p>
+		   <p> To put it another way, the Hessian of a function \( \mathbf{f} \) is the Jacobian matrix of the gradient of the function \( \mathbf{f} \) that is: \( \mathbf{H}(f(\mathbf{x})) = \mathbf{J}( \nabla f(\mathbf{x})) \). </p>
+		   <p> For a scalar function \( f : \mathbb{R}^n \rightarrow \mathbb{R} \), the Hessian matrix is: </p>
+		   <p> \[ H_f(x) = \left[ \frac{\partial^2 f}{\partial x_i \partial x_j} \right]_{i,j=1}^{n} \] </p>
+		   <p> So if \( f \) is a function of three variables i.e. \( f(x, y, z) \), then: </p>
+		   <p> \[ H_f(x, y, z) = \begin{bmatrix} \frac{\partial^2 f}{\partial x^2} & \frac{\partial^2 f}{\partial x \partial y} & \frac{\partial^2 f}{\partial x \partial z} \\ \frac{\partial^2 f}{\partial y \partial x} & \frac{\partial^2 f}{\partial y^2} & \frac{\partial^2 f}{\partial y \partial z} \\ \frac{\partial^2 f}{\partial z \partial x} & \frac{\partial^2 f}{\partial z \partial y} & \frac{\partial^2 f}{\partial z^2} \end{bmatrix} \] </p>
 	   </div>
+	   <div>
+		   <h3> Jax primitives to calculate these:  </h3>
+		   <ul>
+			   <li> <strong>Gradient</strong>:<br/> <code>jax.grad(f)</code> computes the gradient of a scalar valued function. This is <a href="https://docs.jax.dev/en/latest/_autosummary/jax.grad.html#jax.grad">well documented</a>. This machine learning 101, no questions here   </li> 
+			   <li> <strong>Jacobian</strong>:<br/> <code>jax.jacobian(F)</code> computes the full Jacobian matrix of a vector-valued function. Again another <a href="https://docs.jax.dev/en/latest/_autosummary/jax.jacobian.html#jax.jacobian">well documented</a> function though not as known as calculating the gradient.</li>
+			   <li> <strong>Divergence</strong>: <br/> <u>No direct Jax primitive</u> but can be computed as the trace of the Jacobian: <br/> <code>jax.jacobian(F)(x).trace()</code> when \( F : \mathbb{R}^n \rightarrow \mathbb{R}^n \) </li>
+			   <li> <strong>Curl</strong>: <br/> <u>No direct Jax primitive</u> It must be manually computed using partial derivatives and the determinant form in 3D </li>
+			   <li> <strong>Laplacian</strong>: <br/> <u>No direct Jax primitive</u> but can be computed as the trace of the Hessian: <br/>
+				   <code>jax.hessian(f)(x).trace()</code> for \( f : \mathbb{R}^n \rightarrow \mathbb{R} \)
+			   </li>
+			   <li> <strong>Hessian</strong>: <br/> <code>jax.hessian(f)</code> computes the full matrix of second derivatives for a scalar function. The <a href="https://docs.jax.dev/en/latest/_autosummary/jax.hessian.html#jax.hessian">documentation exists here</a></li>
+</ul>
+
+	   </div>
+
 	</div>
 
 	<div id="footer">
