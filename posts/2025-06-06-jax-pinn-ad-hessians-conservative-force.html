@@ -8,6 +8,9 @@
         <link rel="stylesheet" href="../css/default.css" />
         <link rel="stylesheet" href="../js/highlight/styles/nord.css">
         <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+		<link rel="stylesheet" href="../js/highlight/styles/nord.min.css">
+        <script src="../js/highlight/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script>
     </head>
     <body>
         <div id="header">
@@ -74,7 +77,7 @@
 	   <hr/>
 
 	   <div>
-		   <h2 id="calculating"> Calculating the Laplacian and the Curl of the Scalar Potential field in Jax</h2>
+		   <h2 id="calculating"> Calculating the Laplacian of Scalar Potential and the Curl of the acceleration field</h2>
 
 		   <p> <u>There are no jax primitives to calculate these directly </u> To get going, a refresher in Vector Calculus is order </p>
 
@@ -143,8 +146,73 @@
 			   <li> <strong>Laplacian</strong>: <br/> <u>No direct Jax primitive</u> but can be computed as the trace of the Hessian: <br/>
 				   <code>jax.hessian(f)(x).trace()</code> for \( f : \mathbb{R}^n \rightarrow \mathbb{R} \)
 			   </li>
-			   <li> <strong>Hessian</strong>: <br/> <code>jax.hessian(f)</code> computes the full matrix of second derivatives for a scalar function. The <a href="https://docs.jax.dev/en/latest/_autosummary/jax.hessian.html#jax.hessian">documentation exists here</a></li>
-</ul>
+			   <li> <strong>Hessian</strong>: <br/> <code>jax.hessian(f)</code> computes the full matrix of second derivatives for a scalar function. The <a href="https://docs.jax.dev/en/latest/_autosummary/jax.hessian.html#jax.hessian">documentation exists here</a></li> </ul>
+		   <br/>
+		   <h3> Closer look at operators that have no direct Jax routes </h3>
+		   <p> When we take a closer look at the <strong>laplacian</strong> and keep staring it for a bit, we see that it is the just the diagonal of the Hessian. </p>
+		   <p>
+			\[
+			H_f(x, y, z) =
+			\begin{bmatrix}
+			  \colorbox{yellow}{$\displaystyle \frac{\partial^2 f}{\partial x^2}$} & \frac{\partial^2 f}{\partial x \partial y} & \frac{\partial^2 f}{\partial x \partial z} \\
+			  \frac{\partial^2 f}{\partial y \partial x} & \colorbox{yellow}{$\displaystyle \frac{\partial^2 f}{\partial y^2}$} & \frac{\partial^2 f}{\partial y \partial z} \\
+			  \frac{\partial^2 f}{\partial z \partial x} & \frac{\partial^2 f}{\partial z \partial y} & \colorbox{yellow}{$\displaystyle \frac{\partial^2 f}{\partial z^2}$}
+			\end{bmatrix}
+			\]
+		  </p>
+		  <p> So what? well given that we have no native jax operation for such, this makes our life easier so all we need to do to caclulate the Laplacian or just the divergence of the scalar potential (for our loss function) is:</p>
+		  <pre><code class="python">
+import jax
+import jax.numpy
+
+scalar_potential = model(x)
+
+hessian = jnp.hessian(scalar_potential)
+# or you could calculate the hessian with the grad 
+# i.e jnp.jacobian(jnp.grad(scalar_potential))
+
+laplacian = jnp.trace(hessian)
+		  </code></pre>
+
+		  <p> What about the curl of the acceleration field? <i> For this particular case since we are allowed to start with the scalar potential, it's the hessian to the rescue again </i></p>
+		  <p> What do I mean? Let's look at the formula for curl of acceleration </p>
+		  <p> \[ \nabla \times \mathbf{F} = \begin{vmatrix} \mathbf{i} & \mathbf{j} & \mathbf{k} \\ \frac{\partial}{\partial x} & \frac{\partial}{\partial y} & \frac{\partial}{\partial z} \\ A_x & A_y & A_z \end{vmatrix} \] </p>
+		  <p> Remember \( A_x, A_y, A_z \) are the three base components of the acceleration which is nothing but </p>
+		  <p> \[ A_x \mathbf{i} + A_y \mathbf{j} + A_z \mathbf{k} = \frac{\partial s}{\partial x} \mathbf{i} + \frac{\partial s}{\partial y} \mathbf{j} + \frac{\partial s}{\partial z} \mathbf{k}  \]</p>
+		  <p> so: </p>
+		  <p> \[ \nabla \times \nabla \mathbf{s} = \begin{vmatrix} \mathbf{i} & \mathbf{j} & \mathbf{k} \\ \frac{\partial}{\partial x} & \frac{\partial}{\partial y} & \frac{\partial}{\partial z} \\  \frac{\partial s}{\partial x} & \frac{\partial s}{\partial y} & \frac{\partial s}{\partial z} \end{vmatrix} \] </p>
+		  <p> \[ \nabla \times \nabla \mathbf{s} = \left( \frac{\partial^2 s}{\partial y \partial z} - \frac{\partial^2 s}{\partial z \partial y}\right) \mathbf{i} + \left( \frac{\partial^2 s}{\partial z \partial x} - \frac{\partial^2 s}{\partial x \partial z}\right)\mathbf{j} + \left(\frac{\partial^2 s}{\partial x \partial y} - \frac{\partial^2 s}{\partial y \partial x} \right)\mathbf{k} \] </p>
+
+		  <p> You dear reader probably have seen enough, but please be so kind as to allow me to drive home the point </p>
+		  <p>
+			\[
+			H_f(x, y, z) =
+			\begin{bmatrix}
+			  \frac{\partial^2 f}{\partial x^2} &  \colorbox{yellow}{$\displaystyle \frac{\partial^2 f}{\partial x \partial y} $} & \colorbox{pink}{$\displaystyle \frac{\partial^2 f}{\partial x \partial z} $} \\
+			  \colorbox{yellow}{$\displaystyle \frac{\partial^2 f}{\partial y \partial x} $} &  \frac{\partial^2 f}{\partial y^2} & \colorbox{green}{$\displaystyle \frac{\partial^2 f}{\partial y \partial z} $} \\
+			   \colorbox{pink}{$\displaystyle \frac{\partial^2 f}{\partial z \partial x} $} & \colorbox{green}{$\displaystyle \frac{\partial^2 f}{\partial z \partial y} $} & \frac{\partial^2 f}{\partial z^2}
+			\end{bmatrix}
+			\]
+		  </p>
+		  <p> <strong> Note: </strong> Shouldn't this always be equal to zero? <i> Turns out not always </i> but it should be equal to zero as a constraint when search the space of all potentials </p>
+		  <pre><code class="python">
+import jax
+import jax.numpy
+
+scalar_potential = model(x)
+
+hessian = jnp.hessian(scalar_potential)
+# or you could calculate the hessian with the grad 
+# i.e jnp.jacobian(jnp.grad(scalar_potential))
+
+curl_x = jnp.array([hessian[2,1] - hessian[1,2]])
+curl_y = jnp.array([hessian[2,0] - hessian[0,2]])
+curl_z = jnp.array([hessian[1,2] - hessian[2,1]])
+curl_of_s = jnp.stack((curl_x, curl_y, curl_z))
+		  </code></pre>
+
+
+
 
 	   </div>
 
