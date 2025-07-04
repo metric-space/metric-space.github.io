@@ -227,21 +227,23 @@ f = lambda x: 1./jnp.linalg.norm(x) # you could multiply this with a high consta
 
 acceleration_field = jax.grad(f)
 
-def curl(vector_field):
+def curl(acceleration_field):
+    hessian = jax.jacobian(acceleration_field)
+
     def f(x):
-        hessian = jax.jacobian(vector_field)(x)
-        curl_x = jnp.array([hessian[2,1] - hessian[1,2]])
-        curl_y = jnp.array([hessian[2,0] - hessian[0,2]])
-        curl_z = jnp.array([hessian[1,0] - hessian[0,1]])
+        hessian_ = hessian(x)
+        curl_x = jnp.array([hessian_[2,1] - hessian_[1,2]])
+        curl_y = jnp.array([hessian_[2,0] - hessian_[0,2]])
+        curl_z = jnp.array([hessian_[1,0] - hessian_[0,1]])
         return jnp.stack([curl_x, curl_y, curl_z], axis=-1)
     return f
 
+def divergence(acceleration_field):
+    hessian = jax.jacobian(acceleration_field)
 
-def divergence(vector_field):
     def f(x):
-        return jnp.trace(jax.jacobian(vector_field)(x))
+        return jnp.trace(hessian(x))
     return f
-
 
 v_curl = jax.vmap(curl(acceleration_field))
 v_divergence = jax.vmap(divergence(acceleration_field))
