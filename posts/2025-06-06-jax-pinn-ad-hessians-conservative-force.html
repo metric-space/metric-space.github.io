@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Metric Space - Jax, PINN, AD, Hessians and a conservative force </title>
+        <title>Metric Space - Implementing Physics constraints in PINNs with JAX </title>
         <link rel="stylesheet" href="../css/default.css" />
         <link rel="stylesheet" href="../js/highlight/styles/nord.css">
         <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -24,30 +24,16 @@
 
         <div id="content">
             <div> 
-		<h2> Work in Progress ... </h2>
-                <h3 id="Intro"> Problem Intro</h3>
+        <h3 id="Intro"> Problem Intro</h3>
 		<p> You have an untrained neural net that spits a gravity scalar potential \( \mathbb{U} \) in response to a 3D cartesian position </p>
 		<p> The goal is to figure out gravitational acceleration from the gravity scalar potential </p>
 		<p> Turns out the gravitational acceleration \( \mathbf{a}(\mathbf{x}) \) is obtained as the negative gradient of the potential: </p> 
 		<p> \[ \mathbf{a}(\mathbf{x}) = -\nabla U(\mathbf{x}) \] </p>
 		<br/>
 		<p> At some point we want to train the neural net, so inevitably we'll get a dataset of 3d cartesian products mapped to their respective acceleration values </p>
-		<p> <i> Hang on, why bother with a NN spitting out a scalar potential when it can spit 3 ripe values for acceleration </i> ? </p>
 
-		<blockquote style="border:solid #5b6dcd 2px"> "Most obvious is the fact that the network is now trained with the knowledge that there is a rela-
-			tionship between the accelerations it produces via automatic differentiation and the more
-			fundamental scalar potential. Second, because the network is learning a representation of the
-			potential rather than the accelerations, all three acceleration vector components of the training
-			data are now being used to constrain a single scalar function. This is a much more efficient
-			regression for the network, learning a single potential rather than being forced to learn three
-			separate acceleration features" 
-		</blockquote>
+		<p> But what does the loss function to train the NN look like? For this we take a look at the loss function described in this paper: <a href="https://hanspeterschaub.info/PapersPrivate/Martin2022d.pdf">Physics-informed neural networks for gravity field modeling of small bodies</a></p>
 
-		<p> <strong>And I advise you dear reader to call it out for what is .... a bullshit claim till proven right</strong></p>
-
-		<p> So let's look at the other possible reasons. The first on the list is the loss function in the paper <p>
-
-		<p> The loss function is taken from this paper: <a href="https://hanspeterschaub.info/PapersPrivate/Martin2022d.pdf">Physics-informed neural networks for gravity field modeling of small bodies</a></p>
 		<p> The loss in question is here: </p>
 		<p> \[ \mathcal{L}(\theta) = \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \mathbf{a_i}_{\text{true}} - (- \nabla U(\mathbf{x}_{i})) \right\|^2}_{\text{acceleration error}} + \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \nabla^2 U(\mathbf{x}_i) \right\|^2}_{\text{Laplacian penalty}} + \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \nabla \times \nabla U(\mathbf{x}_i) \right\|^2}_{\text{curl penalty}} \] </p>
 		<p> The first term probably makes sense given it is your basic MSE with the true acceleration values. As for the rest ... <p>
@@ -61,17 +47,30 @@
 			<li> \( \nabla \times \mathbf{a} = 0 \) </li>
 		</ol>
 
-		<p> So the cool bit is that by including these terms, we ensure the model being learnt is more in lne with the physics of things which in this case makes sure that force of gravity being modelled in inline with gravity being a conservative force and the physics that comes along with that fact  </p>
+		<p> So the cool bit is that by including these terms, we ensure the model being learnt is more in line with the physics of things which in this case makes sure that force of gravity being modelled in inline with gravity being a conservative force and the physics that comes along with that fact  </p>
 
-		<p> Now let's think. Is there anything about the loss that might halt the neural net from spitting out 3 acceleration values? Let's give it a shot </p>
+		<p> That's all good and dandy but how do we put this in code? </p>
 
-		<p> \[ \mathcal{L}(\theta) = \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \mathbf{a_i}_{\text{true}} - \mathbf{a_i}_{\text{predicted}} \right\|^2}_{\text{acceleration error}} + \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \nabla \cdot (\mathbf{a_i}_{\text{predicted}}) \right\|^2}_{\text{Laplacian penalty}} + \underbrace{\frac{1}{N_f} \sum_{i=1}^{N_f} \left\| \nabla \times \mathbf{a_i}_{\text{predicted}} \right\|^2}_{\text{curl penalty}} \]  </p>
+		<p> We'll be looking at implementing this in <a href="https://docs.jax.dev/en/latest/index.html">Jax</a></p>
 
-		<p> The above is keeping in mind that \( \nabla^2 \mathbf{F} = \nabla \cdot \nabla \mathbf{F}  \) . <u> So clearly it's not the loss function ... atleast not in form </u> </p>
+		<p> The MSE part is straightward but it's coding in the additional constraints that is not exactly straightforward as will be shown. <strong>This blog post is about figuring out how to encode the additional contraints related to acceleration field in Jax</strong> </p>
 
-		<p> So maybe just maybe it's <b>regularity</b> of what's been learnt </p>
+		<hr/>
 
-		<p> So just to get (WIP) </p>
+		<h3> Brief tangent </h3>
+
+		<p> <i> Hang on, why bother with a NN spitting out a scalar potential when it can spit 3 ripe values for acceleration </i> ? </p>
+
+		<blockquote style="border:solid #5b6dcd 2px"> "Most obvious is the fact that the network is now trained with the knowledge that there is a relationship between the accelerations it produces via automatic differentiation and the more
+			fundamental scalar potential. Second, because the network is learning a representation of the
+			potential rather than the accelerations, all three acceleration vector components of the training
+			data are now being used to constrain a single scalar function. This is a much more efficient
+			regression for the network, learning a single potential rather than being forced to learn three
+			separate acceleration features" 
+		</blockquote>
+
+		<p> <strong>Something about this claim (i.e 1 is more efficient than 3) should get your spidey sense tingling. I do have some thoughts on this as I think it is a weak claim and I promise to address this  in a future blog post</strong></p>
+
 	   </div>
 
 	   <hr/>
@@ -160,7 +159,7 @@
 			\end{bmatrix}
 			\]
 		  </p>
-		  <p> So what? well given that we have no native jax operation for such, this makes our life easier so all we need to do to caclulate the Laplacian or just the divergence of the scalar potential (for our loss function) is:</p>
+		  <p> So what? well given that we have no native jax operation for such, this makes our life easier so all we need to do to calculate the Laplacian or just the divergence of the scalar potential (for our loss function) is:</p>
 		  <pre><code class="python">
 import jax
 import jax.numpy
@@ -207,7 +206,7 @@ hessian = jnp.hessian(scalar_potential)
 
 curl_x = jnp.array([hessian[2,1] - hessian[1,2]])
 curl_y = jnp.array([hessian[2,0] - hessian[0,2]])
-curl_z = jnp.array([hessian[1,2] - hessian[2,1]])
+curl_z = jnp.array([hessian[1,0] - hessian[0,1]])
 curl_of_s = jnp.stack((curl_x, curl_y, curl_z))
 		  </code></pre>
 
@@ -216,6 +215,71 @@ curl_of_s = jnp.stack((curl_x, curl_y, curl_z))
 
 	   </div>
 
+	   <p>So all of this is cool, but does it really work? Let's put this to the test on a analytical scalar potential field defined on a point mass</p>
+	   <p> Which is \( U(\mathbf{r}) = \frac{1}{\|\mathbf{r}\|} = \frac{1}{\sqrt{x^2 + y^2 + z^2}} \) (ignoring the negative sign and any constants)</p>
+	   <p> Calculating the divergence and curl of the acceleration field derived from this should give us close to 0 for pretty much all coordinates not equal to zero</p>
+	   <pre><code class="python">
+import jax
+import jax.numpy as jnp
+import matplotlib.pyplot as plt
+
+f = lambda x: 1./jnp.linalg.norm(x) # you could multiply this with a high constant like 1000, it still be close to zero
+
+acceleration_field = jax.grad(f)
+
+def curl(vector_field):
+    def f(x):
+        hessian = jax.jacobian(vector_field)(x)
+        curl_x = jnp.array([hessian[2,1] - hessian[1,2]])
+        curl_y = jnp.array([hessian[2,0] - hessian[0,2]])
+        curl_z = jnp.array([hessian[1,0] - hessian[0,1]])
+        return jnp.stack([curl_x, curl_y, curl_z], axis=-1)
+    return f
+
+
+def divergence(vector_field):
+    def f(x):
+        return jnp.trace(jax.jacobian(vector_field)(x))
+    return f
+
+
+v_curl = jax.vmap(curl(acceleration_field))
+v_divergence = jax.vmap(divergence(acceleration_field))
+
+points = jnp.linspace(-2.0, 2.0, 10)
+X,Y,Z = jnp.meshgrid(points, points, points)
+X,Y,Z = X.reshape(-1), Y.reshape(-1), Z.reshape(-1)
+coords = jnp.stack([X,Y,Z], axis=-1)
+
+# we want to avoid anything too close to zero
+filtered_points = coords[jnp.nonzero(jnp.linalg.norm(coords, axis=-1) > 0.1)]
+
+curls = jnp.linalg.norm(v_curl(filtered_points), axis=-1)
+divs = jnp.abs(v_divergence(filtered_points))
+
+plt.figure(figsize=(10, 5))
+plt.subplot(1,2,1)
+plt.hist(curls, bins=30, color='skyblue')
+plt.title("Curl Magnitude Distribution")
+plt.xlabel("curl magnitude")
+plt.ylabel("frequency")
+
+plt.subplot(1, 2, 2)
+plt.hist(divs, bins=30, color='salmon')
+plt.title("Divergence Magnitude Distribution")
+plt.xlabel("divergence magnitude")
+plt.ylabel("frequency")
+
+plt.tight_layout()
+plt.savefig("curl_and_div.png")
+	   </code></pre>
+	   <figure>
+		<image src="../images/curl_and_div.png"></image>
+	  </figure>
+	  <p> Seems like we have the magnitudes of the curl and diverge of the the acceleration field associated with our analytical potential function,  very very close to zero providing strong evidence that our computation is right </p>
+
+	<h3>Conclusion</h3>
+	<p> Given that we now know how to compute the curl and divergence in Jax, encoding the constraints for the conservative force should be a lot more straightforward </p>
 	</div>
 
 	<div id="footer">
